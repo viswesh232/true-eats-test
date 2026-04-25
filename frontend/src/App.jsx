@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
+import ChatBot from './components/ChatBot';
 
 import Signup         from './pages/Signup';
 import Login          from './pages/Login';
@@ -88,6 +89,7 @@ function App() {
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <ChatBot />
         </Router>
     );
 }

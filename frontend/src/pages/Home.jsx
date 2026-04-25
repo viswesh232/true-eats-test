@@ -4,716 +4,324 @@ import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import heroImage from '../assets/hero.png';
-import logoImage from '../../logo.jpg';
-import {
-    ShoppingCart,
-    Search,
-    ArrowRight,
-    UserRound,
-    Minus,
-    Plus,
-    Camera,
-    MessagesSquare,
-    Play,
-    Phone,
-    MapPin,
-    ChevronLeft,
-    ChevronRight,
-} from 'lucide-react';
 
-const colors = {
-    page: '#f7f4ee',
-    surface: '#ffffff',
-    soft: '#f4ede4',
-    border: '#e2d8cb',
-    text: '#213128',
-    muted: '#66756d',
-    forest: '#234232',
-    lime: '#a5c11f',
-    limeDeep: '#96b31b',
-    orange: '#dd7a2f',
-    orangeSoft: '#fff1e4',
-};
-
-const topBarHeights = {
-    announcement: 42,
-    nav: 82,
-};
-
-// Add any number of restaurant banner images here.
-const restaurantBanners = [
+// ─── ADD YOUR BANNERS HERE ────────────────────────────────────────────────────
+// Each banner needs: image, title, subtitle. Add as many as you like.
+const BANNERS = [
     {
         image: heroImage,
-        title: 'Fresh food, warm space',
-        subtitle: 'Show your restaurant, kitchen, team, or signature dishes here.',
+        title: 'Premium quality,\ndirect to your door.',
+        subtitle: 'Handpicked food products packed fresh and delivered across India in 7–10 days.',
     },
     {
-        image: logoImage,
-        title: 'Your restaurant story',
-        subtitle: 'You can keep adding more banner images in this array anytime.',
+        image: heroImage,
+        title: 'Eat better,\nlive better.',
+        subtitle: 'Clean ingredients, zero compromise. Every product is sourced and packed with care.',
     },
+    // Add more banners by duplicating the block above ↑
+];
+import {
+    ShoppingCart, Search, ArrowRight, UserRound, Minus, Plus,
+    Camera, MessagesSquare, Play, Phone, MapPin,
+    ChevronLeft, ChevronRight, Star, Clock, Truck, Shield, Menu, X,
+} from 'lucide-react';
+import './Home.css';
+
+const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
+
+const STATS = [['500+', 'Happy Customers'], ['20+', 'Products'], ['7–10 Days', 'Delivery'], ['4.9★', 'Rating']];
+const PERKS = [
+    [<Truck size={22} />, 'Pan-India Delivery', 'Delivered in 7–10 working days'],
+    [<Shield size={22} />, 'Quality Assured', 'Every product hygiene checked'],
+    [<Clock size={22} />, 'Long Shelf Life', 'Packed for freshness & safety'],
+    [<Star size={22} />, 'Top Rated', '4.9 stars from customers'],
 ];
 
-const formatPrice = (amount) => new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-}).format(amount || 0);
-
-const Home = () => {
+export default function Home() {
     const [products, setProducts] = useState([]);
     const [announcements, setAnnouncements] = useState([]);
     const [categories, setCategories] = useState(['All']);
     const [activeCategory, setActiveCategory] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
-    const [addedToast, setAddedToast] = useState('');
-    const [bannerIndex, setBannerIndex] = useState(0);
+    const [toast, setToast] = useState('');
+    const [bannerIdx, setBannerIdx] = useState(0);
+    const [scrolled, setScrolled] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [imgIdx, setImgIdx] = useState({});
 
     const { user, logout } = useContext(AuthContext);
     const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchHomeData = async () => {
+        (async () => {
             try {
-                const [{ data: menu }, settingsResponse] = await Promise.all([
+                const [{ data: menu }, settingsRes] = await Promise.all([
                     API.get('/products'),
                     API.get('/settings').catch(() => ({ data: {} })),
                 ]);
-
-                const settings = settingsResponse?.data || {};
-                const nextProducts = menu || [];
-
-                setProducts(nextProducts);
-                setCategories(['All', ...new Set(nextProducts.map((product) => product.category).filter(Boolean))]);
-                setAnnouncements((settings.announcements || []).filter((item) => item.active && item.text?.trim()));
-            } catch (error) {
-                console.error(error);
-            }
-        };
-
-        fetchHomeData();
+                const s = settingsRes?.data || {};
+                setProducts(menu || []);
+                setCategories(['All', ...new Set((menu || []).map(p => p.category).filter(Boolean))]);
+                setAnnouncements((s.announcements || []).filter(a => a.active && a.text?.trim()));
+            } catch (e) { console.error(e); }
+        })();
     }, []);
 
     useEffect(() => {
-        if (restaurantBanners.length <= 1) return undefined;
-
-        const timer = window.setInterval(() => {
-            setBannerIndex((current) => (current + 1) % restaurantBanners.length);
-        }, 4500);
-
-        return () => window.clearInterval(timer);
+        if (BANNERS.length <= 1) return;
+        const t = setInterval(() => setBannerIdx(s => (s + 1) % BANNERS.length), 5000);
+        return () => clearInterval(t);
     }, []);
 
-    const filteredProducts = useMemo(() => products.filter((product) => {
-        const categoryMatch = activeCategory === 'All' || product.category === activeCategory;
-        const searchSource = `${product.name} ${product.description || ''} ${product.category || ''}`.toLowerCase();
-        const searchMatch = !searchTerm.trim() || searchSource.includes(searchTerm.toLowerCase());
-        return categoryMatch && searchMatch;
+    useEffect(() => {
+        const fn = () => setScrolled(window.scrollY > 10);
+        window.addEventListener('scroll', fn, { passive: true });
+        return () => window.removeEventListener('scroll', fn);
+    }, []);
+
+    const filtered = useMemo(() => products.filter(p => {
+        const cat = activeCategory === 'All' || p.category === activeCategory;
+        const src = `${p.name} ${p.description || ''} ${p.category || ''}`.toLowerCase();
+        return cat && (!searchTerm.trim() || src.includes(searchTerm.toLowerCase()));
     }), [activeCategory, products, searchTerm]);
 
-    const featuredProducts = useMemo(() => products.slice(0, 3), [products]);
-    const footerCategories = useMemo(() => categories.filter((category) => category !== 'All').slice(0, 6), [categories]);
-    const totalCartQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
-    const getCartQty = (productId) => cartItems.find((item) => item._id === productId)?.qty || 0;
-    const currentBanner = restaurantBanners[bannerIndex] || restaurantBanners[0];
 
-    const handleAddToCart = (product) => {
+    const footerCats = useMemo(() => categories.filter(c => c !== 'All').slice(0, 6), [categories]);
+    const totalQty = cartItems.reduce((a, i) => a + i.qty, 0);
+    const getQty = id => cartItems.find(i => i._id === id)?.qty || 0;
+    const getImgs = p => { const a = (p.images || []).filter(Boolean); return a.length ? a : p.image ? [p.image] : []; };
+    const setImg = (id, i) => setImgIdx(prev => ({ ...prev, [id]: i }));
+
+    const handleAdd = (product) => {
         addToCart(product);
-        setAddedToast(`${product.name} added to cart`);
-        window.setTimeout(() => setAddedToast(''), 1800);
+        setToast(`${product.name} added!`);
+        setTimeout(() => setToast(''), 2000);
     };
 
-    const handleProfileClick = () => {
-        if (!user) {
-            navigate('/login');
-            return;
-        }
-        if (user.role === 'admin') {
-            navigate('/dashboard');
-            return;
-        }
-        navigate('/profile');
-    };
-
-    const jumpToCategory = (category) => {
-        setActiveCategory(category);
-        document.getElementById('shop-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
-    const moveBanner = (direction) => {
-        setBannerIndex((current) => {
-            if (direction === 'prev') {
-                return current === 0 ? restaurantBanners.length - 1 : current - 1;
-            }
-            return (current + 1) % restaurantBanners.length;
-        });
-    };
+    const goProfile = () => navigate(!user ? '/login' : user.role === 'admin' ? '/dashboard' : '/profile');
+    const scrollMenu = () => document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth' });
+    const curBanner = BANNERS[bannerIdx] || BANNERS[0];
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: colors.page, color: colors.text, fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif", overflowX: 'hidden' }}>
-            <style>{`
-                .home-shell {
-                    width: 100%;
-                    margin: 0;
-                    padding: 0;
-                    box-sizing: border-box;
-                }
-                .top-fixed {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    z-index: 50;
-                }
-                .announcement-bar {
-                    height: ${topBarHeights.announcement}px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: ${colors.forest};
-                    color: #f7f4ee;
-                    padding: 0 16px;
-                    text-align: center;
-                    font-size: 13px;
-                    font-weight: 700;
-                    letter-spacing: 0.02em;
-                }
-                .nav-shell,
-                .section-shell,
-                .footer-shell {
-                    width: 100%;
-                    margin: 0;
-                    padding-left: 24px;
-                    padding-right: 24px;
-                    box-sizing: border-box;
-                }
-                .home-nav {
-                    display: grid;
-                    grid-template-columns: 180px minmax(0, 1fr) auto;
-                    align-items: center;
-                    gap: 24px;
-                    min-height: ${topBarHeights.nav}px;
-                    background: rgba(247, 244, 238, 0.97);
-                    backdrop-filter: blur(12px);
-                    border-bottom: 1px solid ${colors.border};
-                }
-                .home-links {
-                    display: flex;
-                    justify-content: center;
-                    gap: 24px;
-                    flex-wrap: wrap;
-                }
-                .home-links button,
-                .footer-links button {
-                    border: none;
-                    background: none;
-                    color: inherit;
-                    font: inherit;
-                    cursor: pointer;
-                    padding: 0;
-                    text-align: left;
-                }
-                .home-actions {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    flex-wrap: wrap;
-                    justify-content: flex-end;
-                }
-                .search-wrap {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    background: ${colors.surface};
-                    border: 1px solid ${colors.border};
-                    border-radius: 999px;
-                    padding: 12px 16px;
-                    min-width: 280px;
-                }
-                .search-wrap input {
-                    border: none;
-                    outline: none;
-                    background: transparent;
-                    width: 100%;
-                    color: ${colors.text};
-                    font-size: 14px;
-                }
-                .banner-shell {
-                    width: 100%;
-                    margin-bottom: 34px;
-                }
-                .banner-frame {
-                    position: relative;
-                    width: 100%;
-                    min-height: 560px;
-                    overflow: hidden;
-                    background: #d9d9d9;
-                }
-                .banner-image {
-                    position: absolute;
-                    inset: 0;
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
-                .banner-content {
-                    position: relative;
-                    z-index: 2;
-                    min-height: 560px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: flex-end;
-                    align-items: flex-start;
-                    padding: 44px 90px 44px 90px;
-                    box-sizing: border-box;
-                }
-                .featured-row {
-                    display: grid;
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                    gap: 18px;
-                    margin-bottom: 36px;
-                }
-                .category-row {
-                    display: flex;
-                    gap: 12px;
-                    flex-wrap: wrap;
-                    margin: 18px 0 26px;
-                }
-                .products-grid {
-                    display: grid;
-                    grid-template-columns: repeat(3, minmax(0, 1fr));
-                    gap: 22px;
-                }
-                .footer-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr 1fr;
-                    gap: 28px;
-                }
-                .footer-links {
-                    display: grid;
-                    gap: 14px;
-                }
-                @media (max-width: 1080px) {
-                    .home-nav {
-                        grid-template-columns: 1fr;
-                        justify-items: start;
-                        padding-top: 16px;
-                        padding-bottom: 16px;
-                    }
-                    .home-links,
-                    .home-actions {
-                        justify-content: flex-start;
-                    }
-                    .search-wrap {
-                        width: 100%;
-                        min-width: 0;
-                    }
-                    .featured-row,
-                    .products-grid,
-                    .footer-grid {
-                        grid-template-columns: 1fr 1fr;
-                    }
-                    .banner-content {
-                        padding-left: 70px;
-                        padding-right: 70px;
-                    }
-                }
-                @media (max-width: 760px) {
-                    .nav-shell,
-                    .section-shell,
-                    .footer-shell {
-                        padding-left: 14px;
-                        padding-right: 14px;
-                    }
-                    .featured-row,
-                    .products-grid,
-                    .footer-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    .banner-frame,
-                    .banner-content {
-                        min-height: 420px;
-                    }
-                    .banner-content {
-                        padding-left: 56px;
-                        padding-right: 56px;
-                        padding-bottom: 30px;
-                    }
-                }
-            `}</style>
+        <>
+            {toast && <div className="toast">✓ {toast}</div>}
 
-            {addedToast && (
-                <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', backgroundColor: colors.forest, color: '#fff', padding: '12px 22px', borderRadius: '999px', fontWeight: 700, zIndex: 60, boxShadow: '0 12px 28px rgba(35,66,50,0.22)' }}>
-                    {addedToast}
-                </div>
-            )}
-
-            <div className='top-fixed'>
-                <div className='announcement-bar'>
-                    {announcements.length > 0 ? announcements[0].text : 'True Eats'}
-                </div>
-                <div className='nav-shell'>
-                    <nav className='home-nav'>
-                        <div style={{ color: colors.forest, fontSize: '32px', fontWeight: 900, letterSpacing: '-0.05em' }}>
-                            True Eats
-                        </div>
-
-                        <div className='home-links' style={{ color: colors.forest, fontWeight: 600, fontSize: '14px' }}>
-                            <button onClick={() => navigate('/')}>Home</button>
-                            <button onClick={() => navigate('/our-story')}>Our Story</button>
-                            <button onClick={() => navigate('/contact')}>Contact</button>
-                            {user && <button onClick={() => navigate('/orders')}>My Orders</button>}
-                            {user && <button onClick={() => navigate('/support')}>Support</button>}
-                        </div>
-
-                        <div className='home-actions'>
-                            <div className='search-wrap'>
-                                <Search size={16} color={colors.muted} />
-                                <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder='Search products' />
-                            </div>
-                            <button onClick={handleProfileClick} style={actionButton(colors.surface, colors.text, colors.border)}>
-                                <UserRound size={16} /> {user ? (user.role === 'admin' ? 'Dashboard' : 'Profile') : 'Login'}
-                            </button>
-                            {user && (
-                                <button onClick={() => { logout(); navigate('/'); }} style={actionButton('transparent', colors.muted, 'transparent')}>
-                                    Logout
-                                </button>
-                            )}
-                            <button onClick={() => navigate('/cart')} style={actionButton(colors.forest, '#fff', colors.forest)}>
-                                <ShoppingCart size={16} /> {totalCartQty > 0 ? `Cart (${totalCartQty})` : 'Cart'}
-                            </button>
-                        </div>
+            {/* NAV */}
+            <header className={`nav${scrolled ? ' scrolled' : ''}`}>
+                {announcements[0] && !scrolled && <div className="announce">{announcements[0].text}</div>}
+                <div className="nav-bar">
+                    <button className="nav-logo" onClick={() => navigate('/')}>True<span>Eats</span></button>
+                    <nav className="nav-links">
+                        <button onClick={() => navigate('/')}>Home</button>
+                        <button onClick={() => navigate('/our-story')}>Our Story</button>
+                        <button onClick={scrollMenu}>Menu</button>
+                        <button onClick={() => navigate('/contact')}>Contact</button>
+                        {user && <button onClick={() => navigate('/orders')}>My Orders</button>}
                     </nav>
+                    <div className="nav-actions">
+                        <div className="search-box">
+                            <Search size={15} color="#66756d" />
+                            <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search menu…" />
+                        </div>
+                        <button className="btn btn-ghost" onClick={goProfile}>
+                            <UserRound size={16} />{user ? (user.role === 'admin' ? 'Dashboard' : 'Profile') : 'Login'}
+                        </button>
+                        {user && <button className="btn btn-ghost" onClick={() => { logout(); navigate('/'); }}>Logout</button>}
+                        <button className="btn btn-primary" onClick={() => navigate('/cart')}>
+                            <ShoppingCart size={16} />{totalQty > 0 ? `Cart (${totalQty})` : 'Cart'}
+                        </button>
+                        <button className="hamburger" onClick={() => setMobileOpen(o => !o)}>
+                            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+                        </button>
+                    </div>
                 </div>
+                {mobileOpen && (
+                    <div className="mobile-menu">
+                        {[['/', 'Home'], ['/our-story', 'Our Story'], ['/contact', 'Contact'], ['/orders', 'My Orders']].map(([path, label]) => (
+                            <button key={path} onClick={() => { navigate(path); setMobileOpen(false); }}>{label}</button>
+                        ))}
+                        {user && <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}>Logout</button>}
+                    </div>
+                )}
+            </header>
+
+            {/* BANNER */}
+            <section className="banner">
+                <div className="banner-img" style={{ backgroundImage: `url(${curBanner.image})` }} />
+                <div className="banner-overlay" />
+                {BANNERS.length > 1 && (
+                    <>
+                        <button className="banner-arrow banner-arrow-left" onClick={() => setBannerIdx(i => (i - 1 + BANNERS.length) % BANNERS.length)}><ChevronLeft size={20} /></button>
+                        <button className="banner-arrow banner-arrow-right" onClick={() => setBannerIdx(i => (i + 1) % BANNERS.length)}><ChevronRight size={20} /></button>
+                    </>
+                )}
+                <div className="banner-content">
+                    <h1 className="banner-headline">{curBanner.title}</h1>
+                    <p className="banner-sub">{curBanner.subtitle}</p>
+                    <div className="banner-ctas">
+                        <button className="cta-primary" onClick={scrollMenu}>Shop Now <ArrowRight size={18} /></button>
+                        <button className="cta-ghost" onClick={() => navigate('/our-story')}>Our Story</button>
+                    </div>
+                    {BANNERS.length > 1 && (
+                        <div className="banner-dots">
+                            {BANNERS.map((_, i) => (
+                                <button key={i} className={`hero-dot${i === bannerIdx ? ' active' : ''}`} onClick={() => setBannerIdx(i)} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="banner-stats">
+                    {STATS.map(([num, label]) => (
+                        <div key={label} className="hero-stat">
+                            <span className="hero-stat-num">{num}</span>
+                            <span className="hero-stat-label">{label}</span>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+
+
+            {/* PERKS */}
+            <div className="perks">
+                {PERKS.map(([icon, title, desc]) => (
+                    <div key={title} className="perk">
+                        <div className="perk-icon">{icon}</div>
+                        <div><div className="perk-title">{title}</div><div className="perk-desc">{desc}</div></div>
+                    </div>
+                ))}
             </div>
 
-            <div className='home-shell'>
-                <div style={{ height: `${topBarHeights.announcement + topBarHeights.nav}px` }} />
+            {/* MENU */}
+            <div className="section-full" id="menu-section">
+                <div className="section-label">🛍️ Our Products</div>
+                <h2 className="section-title">Browse &amp; Order</h2>
+                <div className="cat-row">
+                    {categories.map(cat => (
+                        <button key={cat} className={`cat-pill${activeCategory === cat ? ' active' : ''}`} onClick={() => setActiveCategory(cat)}>{cat}</button>
+                    ))}
+                </div>
 
-                <section className='banner-shell'>
-                    <div className='banner-frame'>
-                        <img src={currentBanner.image} alt={currentBanner.title} className='banner-image' />
-
-                        <button onClick={() => moveBanner('prev')} style={{ ...bannerArrowButton, left: '22px' }}>
-                            <ChevronLeft size={20} />
-                        </button>
-                        <button onClick={() => moveBanner('next')} style={{ ...bannerArrowButton, right: '22px' }}>
-                            <ChevronRight size={20} />
-                        </button>
-
-                        <div className='banner-content'>
-                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.92)', color: colors.orange, borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                                Restaurant banner
-                            </div>
-
-                            <h1 style={{ margin: '18px 0 10px', fontSize: '58px', lineHeight: 0.96, letterSpacing: '-0.06em', color: '#fff', maxWidth: '720px', textShadow: '0 4px 18px rgba(0,0,0,0.28)' }}>
-                                {currentBanner.title}
-                            </h1>
-
-                            <p style={{ margin: 0, color: '#fff', maxWidth: '620px', lineHeight: 1.9, fontSize: '16px', textShadow: '0 2px 14px rgba(0,0,0,0.22)' }}>
-                                {currentBanner.subtitle}
-                            </p>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '28px' }}>
-                                <button onClick={() => document.getElementById('shop-section')?.scrollIntoView({ behavior: 'smooth' })} style={heroButton(colors.surface, colors.forest)}>
-                                    Shop now <ArrowRight size={16} />
-                                </button>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '8px', marginTop: '18px', flexWrap: 'wrap' }}>
-                                {restaurantBanners.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => setBannerIndex(index)}
-                                        style={{
-                                            width: index === bannerIndex ? '30px' : '10px',
-                                            height: '10px',
-                                            borderRadius: '999px',
-                                            border: 'none',
-                                            background: index === bannerIndex ? '#fff' : 'rgba(255,255,255,0.52)',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease',
-                                            padding: 0,
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <div className='section-shell'>
-                    {featuredProducts.length > 0 && (
-                        <section className='featured-row'>
-                            {featuredProducts.map((product) => (
-                                <button
-                                    key={product._id}
-                                    onClick={() => navigate(`/product/${product._id}`)}
-                                    style={{
-                                        border: `1px solid ${colors.border}`,
-                                        background: colors.surface,
-                                        borderRadius: '26px',
-                                        padding: '18px',
-                                        display: 'grid',
-                                        gridTemplateColumns: '88px minmax(0, 1fr)',
-                                        gap: '14px',
-                                        alignItems: 'center',
-                                        cursor: 'pointer',
-                                        textAlign: 'left',
-                                        boxShadow: '0 14px 28px rgba(31,42,36,0.05)',
-                                    }}
-                                >
-                                    <img
-                                        src={(product.images && product.images[0]) || product.image || ''}
-                                        alt={product.name}
-                                        style={{ width: '88px', height: '88px', borderRadius: '20px', objectFit: 'cover', backgroundColor: colors.soft }}
-                                    />
-                                    <div>
-                                        <div style={{ color: colors.orange, fontSize: '12px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                                            {product.category || 'Featured'}
-                                        </div>
-                                        <div style={{ marginTop: '7px', color: colors.forest, fontWeight: 800, fontSize: '22px' }}>
-                                            {product.name}
-                                        </div>
-                                        <div style={{ marginTop: '8px', fontWeight: 900, fontSize: '20px', color: colors.text }}>
-                                            {formatPrice(product.price)}
-                                        </div>
+                {filtered.length === 0 ? (
+                    <div className="empty">Nothing matched your search.</div>
+                ) : (
+                    <div className="vcard-shelf">
+                        {filtered.map(p => {
+                            const imgs = getImgs(p);
+                            const qty = getQty(p._id);
+                            const rating = p.rating || null;
+                            const reviewCount = p.reviewCount || p.numReviews || 0;
+                            const stars = rating ? '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating)) : null;
+                            const origPrice = p.originalPrice || p.comparePrice || null;
+                            const discount = origPrice && origPrice > p.price
+                                ? Math.round((1 - p.price / origPrice) * 100)
+                                : null;
+                            return (
+                                <div key={p._id} className="vcard">
+                                    {/* Image with hover-swap + badge + quick-add */}
+                                    <div className="vcard-img-wrap">
+                                        {imgs[0]
+                                            ? <img src={imgs[0]} alt={p.name} className="vcard-img" onClick={() => navigate(`/product/${p._id}`)} />
+                                            : <div className="vcard-img img-placeholder">📦</div>
+                                        }
+                                        {imgs[1] && <img src={imgs[1]} alt={p.name} className="vcard-img-hover" onClick={() => navigate(`/product/${p._id}`)} />}
+                                        {p.category && <span className="vcard-badge">{p.category}</span>}
+                                        {qty === 0 && (
+                                            <button className="vcard-quick" onClick={() => handleAdd(p)}>+ Quick Add</button>
+                                        )}
                                     </div>
-                                </button>
-                            ))}
-                        </section>
-                    )}
-
-                    <section id='shop-section'>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '20px', alignItems: 'end', flexWrap: 'wrap' }}>
-                            <div>
-                                <div style={{ color: colors.orange, fontWeight: 800, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '8px' }}>
-                                    Products
-                                </div>
-                                <h2 style={{ margin: 0, fontSize: '40px', letterSpacing: '-0.05em', color: colors.forest }}>
-                                    Shop what you need.
-                                </h2>
-                                <p style={{ margin: '10px 0 0', color: colors.muted, maxWidth: '640px', lineHeight: 1.8 }}>
-                                    Pick a category, open a product, or add it straight to cart from here.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className='category-row'>
-                            {categories.map((category) => (
-                                <button
-                                    key={category}
-                                    onClick={() => setActiveCategory(category)}
-                                    style={{
-                                        border: `1px solid ${activeCategory === category ? colors.forest : colors.border}`,
-                                        backgroundColor: activeCategory === category ? colors.forest : colors.surface,
-                                        color: activeCategory === category ? '#fff' : colors.forest,
-                                        borderRadius: '999px',
-                                        padding: '11px 18px',
-                                        cursor: 'pointer',
-                                        fontWeight: 700,
-                                        fontSize: '14px',
-                                    }}
-                                >
-                                    {category}
-                                </button>
-                            ))}
-                        </div>
-
-                        {filteredProducts.length === 0 ? (
-                            <div style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '24px', padding: '34px', textAlign: 'center', color: colors.muted }}>
-                                No products matched your search.
-                            </div>
-                        ) : (
-                            <div className='products-grid'>
-                                {filteredProducts.map((product) => {
-                                    const cartQty = getCartQty(product._id);
-
-                                    return (
-                                        <div key={product._id} style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '26px', overflow: 'hidden', boxShadow: '0 16px 34px rgba(31,42,36,0.05)' }}>
-                                            <button onClick={() => navigate(`/product/${product._id}`)} style={{ width: '100%', border: 'none', background: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
-                                                <img
-                                                    src={(product.images && product.images[0]) || product.image || ''}
-                                                    alt={product.name}
-                                                    style={{ width: '100%', height: '240px', objectFit: 'cover', backgroundColor: colors.soft }}
-                                                    onError={(e) => { e.target.style.display = 'none'; }}
-                                                />
-                                            </button>
-
-                                            <div style={{ padding: '20px' }}>
-                                                <div style={{ display: 'inline-flex', backgroundColor: colors.orangeSoft, color: colors.orange, borderRadius: '999px', padding: '6px 10px', fontSize: '12px', fontWeight: 800, marginBottom: '12px' }}>
-                                                    {product.category || 'Menu'}
-                                                </div>
-
-                                                <button onClick={() => navigate(`/product/${product._id}`)} style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
-                                                    <h3 style={{ margin: '0 0 8px', fontSize: '21px', color: colors.forest }}>{product.name}</h3>
-                                                </button>
-
-                                                <p style={{ margin: '0 0 16px', color: colors.muted, fontSize: '14px', lineHeight: 1.8, minHeight: '50px' }}>
-                                                    {product.description || 'Freshly listed from the menu.'}
-                                                </p>
-
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                                    <div style={{ fontSize: '24px', fontWeight: 900, color: colors.forest }}>{formatPrice(product.price)}</div>
-                                                </div>
-
-                                                {cartQty > 0 ? (
-                                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', border: `1px solid ${colors.border}`, borderRadius: '16px', padding: '10px 12px', backgroundColor: colors.soft }}>
-                                                        <span style={{ fontWeight: 700, color: colors.forest }}>Quantity</span>
-                                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-                                                            <button onClick={() => removeFromCart(product)} style={qtyButtonStyle}>
-                                                                <Minus size={16} />
-                                                            </button>
-                                                            <span style={{ minWidth: '18px', textAlign: 'center', fontWeight: 800 }}>{cartQty}</span>
-                                                            <button onClick={() => addToCart(product)} style={qtyButtonStyle}>
-                                                                <Plus size={16} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                ) : (
-                                                    <button onClick={() => handleAddToCart(product)} style={{ width: '100%', borderRadius: '16px', border: `1px solid ${colors.forest}`, backgroundColor: colors.forest, color: '#fff', padding: '13px 16px', fontWeight: 700, cursor: 'pointer' }}>
-                                                        Add to cart
-                                                    </button>
-                                                )}
+                                    {/* Info */}
+                                    <div className="vcard-body">
+                                        <button className="vcard-name" onClick={() => navigate(`/product/${p._id}`)}>{p.name}</button>
+                                        {stars && (
+                                            <div className="vcard-rating">
+                                                <span className="vcard-stars">{stars}</span>
+                                                <span className="vcard-rating-text">{rating} ({reviewCount})</span>
                                             </div>
+                                        )}
+                                        <div className="vcard-price-row">
+                                            <span className="vcard-price">{fmt(p.price)}</span>
+                                            {origPrice && origPrice > p.price && (
+                                                <span className="vcard-price-orig">{fmt(origPrice)}</span>
+                                            )}
+                                            {discount && <span className="vcard-price-badge">{discount}% off</span>}
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </section>
+                                        {qty > 0 ? (
+                                            <div className="vcard-qty">
+                                                <button onClick={() => removeFromCart(p)}>−</button>
+                                                <span>{qty}</span>
+                                                <button onClick={() => addToCart(p)}>+</button>
+                                            </div>
+                                        ) : (
+                                            <button className="vcard-add" onClick={() => handleAdd(p)}>Add to Cart</button>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
 
-                    <section style={{ marginTop: '46px', marginBottom: '8px', background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '28px', padding: '34px', boxShadow: '0 14px 28px rgba(31,42,36,0.05)' }}>
-                        <div style={{ color: colors.orange, fontWeight: 800, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
-                            Our Story
-                        </div>
-                        <h2 style={{ margin: 0, fontSize: '38px', letterSpacing: '-0.05em', color: colors.forest }}>
-                            Built around better food and a simpler experience.
-                        </h2>
-                        <p style={{ margin: '14px 0 0', maxWidth: '840px', color: colors.muted, lineHeight: 1.9 }}>
-                            True Eats is about fresh ingredients, cleaner choices, and a storefront that feels welcoming from the first visit. We wanted the experience to stay easy to use while still giving space to the story of the restaurant, the food, and the people behind it.
+            {/* STORY */}
+            <section className="story-band">
+                <div className="story-inner">
+                    <div>
+                        <div className="section-label" style={{ color: '#a5c11f' }}>🌱 About True Eats</div>
+                        <h2 className="section-title" style={{ color: '#fff' }}>Quality food products, delivered to you.</h2>
+                        <p style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.9, marginTop: '14px' }}>
+                            True Eats curates and sells premium food products with a focus on quality, freshness, and transparency. Every item is carefully sourced, hygiene-checked, and packed to reach you in perfect condition.
                         </p>
-                        <button onClick={() => navigate('/our-story')} style={{ marginTop: '20px', ...heroButton(colors.forest, '#fff') }}>
+                        <button className="cta-primary" style={{ marginTop: '28px' }} onClick={() => navigate('/our-story')}>
                             Read our story <ArrowRight size={16} />
                         </button>
-                    </section>
+                    </div>
+                    <img src={heroImage} alt="True Eats products" className="story-img" />
                 </div>
+            </section>
 
-                <footer style={{ marginTop: '52px', width: '100%', background: `linear-gradient(180deg, ${colors.lime} 0%, ${colors.limeDeep} 100%)`, color: '#f8fde7', padding: '40px 0 26px', boxShadow: '0 18px 38px rgba(85, 100, 18, 0.18)' }}>
-                    <div className='footer-shell'>
-                        <div className='footer-grid'>
-                            <div>
-                                <div style={{ fontWeight: 800, marginBottom: '18px', fontSize: '18px' }}>Quick links</div>
-                                <div className='footer-links' style={{ maxWidth: '220px' }}>
-                                    <button onClick={() => navigate('/')} style={{ fontWeight: 800, textDecoration: 'underline' }}>Home</button>
-                                    {footerCategories.map((category) => (
-                                        <button key={category} onClick={() => jumpToCategory(category)}>{category}</button>
-                                    ))}
-                                    <button onClick={() => navigate('/contact')}>Contact</button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div style={{ fontWeight: 800, marginBottom: '18px', fontSize: '18px' }}>Customer Support</div>
-                                <div className='footer-links'>
-                                    <button onClick={() => navigate('/support')}>Support</button>
-                                    <button onClick={() => navigate('/contact')}>Shipping Policy</button>
-                                    <button onClick={() => navigate('/contact')}>Refund and Return Policy</button>
-                                    <button onClick={() => navigate('/contact')}>Privacy Policy</button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div style={{ fontWeight: 800, marginBottom: '18px', fontSize: '18px' }}>Contact information</div>
-                                <div style={{ display: 'grid', gap: '14px', color: '#f8fde7' }}>
-                                    <div style={{ fontWeight: 700 }}>True Eats</div>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                                        <Phone size={16} style={{ marginTop: '2px' }} />
-                                        <span>+91 81796 06489</span>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', maxWidth: '320px', lineHeight: 1.7 }}>
-                                        <MapPin size={16} style={{ marginTop: '3px', flexShrink: 0 }} />
-                                        <span>Fresh meals, healthy snacks, and better food experiences from True Eats.</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '18px', flexWrap: 'wrap', marginTop: '34px', paddingTop: '18px', borderTop: '1px solid rgba(255,255,255,0.18)' }}>
-                            <div style={{ color: 'rgba(248,253,231,0.84)', fontSize: '13px' }}>
-                                Copyright {new Date().getFullYear()} True Eats. All rights reserved.
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                {[Camera, MessagesSquare, Play].map((Icon, index) => (
-                                    <div key={index} style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.22)', display: 'grid', placeItems: 'center', background: 'rgba(255,255,255,0.06)' }}>
-                                        <Icon size={18} />
-                                    </div>
-                                ))}
-                            </div>
+            {/* FOOTER */}
+            <footer className="footer">
+                <div className="footer-inner">
+                    <div>
+                        <div className="nav-logo" style={{ fontSize: '28px', marginBottom: '14px', cursor: 'default' }}>True<span>Eats</span></div>
+                        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', lineHeight: 1.8, maxWidth: '220px' }}>
+                            Fresh meals, healthy snacks, and better food experiences.
+                        </p>
+                        <div className="social-row">
+                            {[Camera, MessagesSquare, Play].map((Icon, i) => <div key={i} className="social-btn"><Icon size={17} /></div>)}
                         </div>
                     </div>
-                </footer>
-            </div>
-        </div>
+                    <div>
+                        <div className="footer-heading">Quick Links</div>
+                        <div className="footer-links">
+                            <button onClick={() => navigate('/')}>Home</button>
+                            {footerCats.map(c => <button key={c} onClick={() => { setActiveCategory(c); scrollMenu(); }}>{c}</button>)}
+                            <button onClick={() => navigate('/contact')}>Contact</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="footer-heading">Support</div>
+                        <div className="footer-links">
+                            <button onClick={() => navigate('/support')}>Support</button>
+                            <button onClick={() => navigate('/contact')}>Shipping Policy</button>
+                            <button onClick={() => navigate('/contact')}>Refund Policy</button>
+                            <button onClick={() => navigate('/contact')}>Privacy Policy</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div className="footer-heading">Contact</div>
+                        <div style={{ display: 'grid', gap: '12px', color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
+                            <div style={{ display: 'flex', gap: '10px' }}><Phone size={15} style={{ marginTop: 2, flexShrink: 0 }} /><span>+91 81796 06489</span></div>
+                            <div style={{ display: 'flex', gap: '10px' }}><MapPin size={15} style={{ marginTop: 2, flexShrink: 0 }} /><span>True Eats, Your City</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div className="footer-bottom">
+                    <span>© {new Date().getFullYear()} True Eats. All rights reserved.</span>
+                </div>
+            </footer>
+        </>
     );
-};
-
-const actionButton = (backgroundColor, color, borderColor = 'transparent') => ({
-    border: `1px solid ${borderColor}`,
-    backgroundColor,
-    color,
-    borderRadius: '999px',
-    padding: '11px 16px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    cursor: 'pointer',
-    fontWeight: 700,
-    fontSize: '14px',
-});
-
-const heroButton = (backgroundColor, color, borderColor = 'transparent') => ({
-    border: `1px solid ${borderColor}`,
-    backgroundColor,
-    color,
-    borderRadius: '999px',
-    padding: '14px 20px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    cursor: 'pointer',
-    fontWeight: 800,
-    fontSize: '15px',
-});
-
-const bannerArrowButton = {
-    position: 'absolute',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    zIndex: 3,
-    width: '46px',
-    height: '46px',
-    borderRadius: '50%',
-    border: '1px solid rgba(255,255,255,0.6)',
-    background: 'rgba(255,255,255,0.92)',
-    color: '#213128',
-    display: 'grid',
-    placeItems: 'center',
-    cursor: 'pointer',
-};
-
-const qtyButtonStyle = {
-    width: '32px',
-    height: '32px',
-    borderRadius: '50%',
-    border: `1px solid ${colors.border}`,
-    backgroundColor: colors.surface,
-    color: colors.text,
-    display: 'grid',
-    placeItems: 'center',
-    cursor: 'pointer',
-};
-
-export default Home;
+}
