@@ -56,6 +56,9 @@ export default function Home() {
     const [toast, setToast] = useState('');
     const [bannerIdx, setBannerIdx] = useState(0);
 
+    const [announcements, setAnnouncements] = useState([]);
+    const [announcementIdx, setAnnouncementIdx] = useState(0);
+
     const [quickAddProduct, setQuickAddProduct] = useState(null);
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [modalQty, setModalQty] = useState(1);
@@ -83,12 +86,14 @@ export default function Home() {
     useEffect(() => {
         (async () => {
             try {
-                const [{ data: menu }] = await Promise.all([
+                const [{ data: menu }, { data: settings }] = await Promise.all([
                     API.get('/products'),
                     API.get('/settings').catch(() => ({ data: {} })),
                 ]);
                 setProducts(menu || []);
                 setCategories(['All', ...new Set((menu || []).map(p => p.category).filter(Boolean))]);
+                const anns = settings?.announcements?.filter(a => a.active) || [];
+                setAnnouncements(anns);
             } catch (e) { console.error(e); }
         })();
     }, []);
@@ -98,6 +103,18 @@ export default function Home() {
         const t = setInterval(() => setBannerIdx(s => (s + 1) % BANNERS.length), 5000);
         return () => clearInterval(t);
     }, []);
+
+    useEffect(() => {
+        if (announcements.length <= 1) return;
+        const t = setInterval(() => setAnnouncementIdx(s => (s + 1) % announcements.length), 4000);
+        return () => clearInterval(t);
+    }, [announcements.length]);
+
+    useEffect(() => {
+        if (announcementIdx >= announcements.length) {
+            setAnnouncementIdx(0);
+        }
+    }, [announcements.length, announcementIdx]);
 
     const filtered = useMemo(() => products.filter(p => {
         const cat = activeCategory === 'All' || p.category === activeCategory;
@@ -132,7 +149,12 @@ export default function Home() {
         <>
             {toast && <div className="toast">✓ {toast}</div>}
 
-
+            {/* ANNOUNCEMENT */}
+            {announcements.length > 0 && announcements[announcementIdx] && (
+                <div className="announce" style={{ transition: 'all 0.3s ease-in-out' }}>
+                    {announcements[announcementIdx].emoji} {announcements[announcementIdx].text}
+                </div>
+            )}
 
             {/* BANNER */}
             <section className="banner">
