@@ -213,7 +213,7 @@ exports.createOrder = async (req, res) => {
     try {
         const {
             orderItems, shippingAddress,
-            couponCode,
+            couponCode, customNote,
             razorpayOrderId, razorpayPaymentId, razorpaySignature,
             paymentMethod
         } = req.body;
@@ -289,6 +289,7 @@ exports.createOrder = async (req, res) => {
             couponCode: pricing.couponCode || '',
             couponDiscount: pricing.couponDiscount || 0,
             userDiscount: pricing.userDiscountAmount || 0,
+            customNote: customNote || '',
             status: paymentStatus === 'Paid' ? 'Placed' : (paymentMethod === 'COD' ? 'Placed' : 'Pending Payment'),
             paymentMethod: paymentMethod || 'Online',
             paymentStatus,
@@ -499,3 +500,72 @@ exports.getRevenueStats = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// ── 2b. RECORD FAILED PAYMENT ────────────────────────────────────────────────
+// @route POST /api/orders/record-failed
+// Called from frontend when Razorpay fires payment.failed
+exports.recordFailedPayment = async (req, res) => {
+    try {
+        const { orderItems, shippingAddress, couponCode, customNote, razorpayOrderId, paymentMethod } = req.body;
+        if (!orderItems || orderItems.length === 0) {
+            return res.status(400).json({ message: 'No order items' });
+        }
+
+        const pricing = await calculateOrderPricing({ orderItems, couponCode, userId: req.user._id });
+        const items = pricing.normalizedItems || orderItems.map(i => ({
+            name: i.name || 'Product',
+            qty: i.qty,
+            image: (i.images && i.images[0]) || i.image || '',
+            price: i.price,
+            product: i.product || i._id,
+        }));
+        const totalPrice = pricing.totalPrice || orderItems.reduce((a, i) => a + i.price * i.qty, 0);
+        const orderId = await generateOrderId();
+
+        const order = new Order({
+            user:          req.user._id,
+            orderId,
+            orderItems:    items,
+            shippingAddress: shippingAddress || 'Address not provided',
+            totalPrice,
+            couponCode:    pricing.couponCode || '',
+            couponDiscount: pricing.couponDiscount || 0,
+            userDiscount:  pricing.userDiscountAmount || 0,
+            customNote:    customNote || '',
+            status:        'Pending Payment',
+            paymentMethod: paymentMethod || 'Online',
+            paymentStatus: 'Failed',
+            razorpayOrderId: razorpayOrderId || '',
+            razorpayPaymentId: '',
+            razorpaySignature: '',
+        });
+
+        const created = await order.save();
+        res.status(201).json({ message: 'Failed payment recorded', order: created });
+    } catch (error) {
+        console.error('Record failed payment error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// ── USER CANCEL ORDER ────────────────────────────────────────────────
+// @route PUT /api/orders/:id/cancel
+exports.userCancelOrder = async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ message: 'Order not found' });
+        if (order.user.toString() !== req.user._id.toString()) return res.status(401).json({ message: 'Not authorized' });
+
+        if (['Delivered', 'Shipped', 'Cancelled'].includes(order.status)) {
+            return res.status(400).json({ message: 'Cannot cancel an order at this stage' });
+        }
+
+        order.status = 'Cancelled';
+        const updated = await order.save();
+        res.json(updated);
+    } catch (error) {
+        console.error('Cancel order error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+

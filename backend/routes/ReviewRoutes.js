@@ -1,5 +1,6 @@
 const express = require('express');
 const router  = express.Router();
+const upload  = require('../middleware/Upload');
 const {
     getProductReviews,
     addReview,
@@ -15,7 +16,7 @@ router.get('/admin/all', protect, admin, getAllReviews);
 router.get('/:productId',          getProductReviews);
 
 // Customer — must be logged in
-router.post('/:productId',         protect, addReview);
+router.post('/:productId',         protect, upload.array('images', 5), addReview);
 
 // Admin delete
 router.delete('/:reviewId',        protect, admin, deleteReview);

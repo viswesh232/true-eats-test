@@ -22,6 +22,12 @@ exports.addReview = async (req, res) => {
             return res.status(400).json({ message: 'Rating and review text are required' });
         }
 
+        // Add uploaded files
+        let images = [];
+        if (req.files && req.files.length > 0) {
+            images = req.files.map(f => `/uploads/${f.filename}`);
+        }
+
         // Check if user already reviewed this product
         const existing = await Review.findOne({
             product: req.params.productId,
@@ -29,6 +35,17 @@ exports.addReview = async (req, res) => {
         });
         if (existing) {
             return res.status(400).json({ message: 'You have already reviewed this product' });
+        }
+
+        // Check if user has ordered this product
+        const Order = require('../models/Order');
+        const hasOrdered = await Order.findOne({
+            user: req.user._id,
+            'orderItems.product': req.params.productId
+        });
+
+        if (!hasOrdered) {
+            return res.status(400).json({ message: 'You must order this product before you can review it.' });
         }
 
         // Check product exists
@@ -41,6 +58,7 @@ exports.addReview = async (req, res) => {
             rating:     Number(rating),
             title:      title || '',
             body,
+            images,
             userName:   req.user.firstName + ' ' + req.user.lastName,
             userAvatar: req.user.firstName?.[0]?.toUpperCase() || '?',
         });

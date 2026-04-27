@@ -6,6 +6,7 @@ const reviewSchema = new mongoose.Schema({
     rating:  { type: Number, required: true, min: 1, max: 5 },
     title:   { type: String, default: '' },
     body:    { type: String, required: true },
+    images:  { type: [String], default: [] }, // Array of photo URLs
     // Denormalised for fast display without populate
     userName:  { type: String, default: '' },
     userAvatar:{ type: String, default: '' }, // first letter of name

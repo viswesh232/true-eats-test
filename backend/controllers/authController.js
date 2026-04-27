@@ -2,47 +2,48 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
+const generateToken = require('../utils/generateToken');
 
 // @desc    Register a new user
 // @route   POST /api/auth/signup
 exports.registerUser = async (req, res) => {
-    try {
-        const { firstName, lastName, email, password, phoneNumber, altPhoneNumber, address } = req.body;
+  try {
+    const { firstName, lastName, email, password, phoneNumber, altPhoneNumber, address } = req.body;
 
-        // 1. Check if user already exists
-        const userExists = await User.findOne({ email });
-        if (userExists) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
+    // 1. Check if user already exists
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: 'User already exists' });
+    }
 
-        // 2. Hash the password (Security Pillar)
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+    // 2. Hash the password (Security Pillar)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 3. Create a unique Verification Token (Flow Pillar)
-        const verificationToken = crypto.randomBytes(32).toString('hex');
+    // 3. Create a unique Verification Token (Flow Pillar)
+    const verificationToken = crypto.randomBytes(32).toString('hex');
 
-        // 4. Create the User in MongoDB
-        const user = await User.create({
-            firstName,
-            lastName,
-            email,
-            password: hashedPassword,
-            phoneNumber,
-            altPhoneNumber,
-            address, // This saves the nested DoorNo, Colony, City, etc.
-            verificationToken
-        });
+    // 4. Create the User in MongoDB
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      phoneNumber,
+      altPhoneNumber,
+      address, // This saves the nested DoorNo, Colony, City, etc.
+      verificationToken
+    });
 
-        if (user) {
-            // TODO: Send Email with Nodemailer here
-            // The Professional Link: Sends them to a verification route we will build next
-            const verifyUrl = `https://true-eats-test.onrender.com/api/auth/verify/${verificationToken}`;
-    
-    // Fallback for plain text clients
-    const message = `Please verify your email by clicking here: ${verifyUrl}`;
+    if (user) {
+      // TODO: Send Email with Nodemailer here
+      // The Professional Link: Sends them to a verification route we will build next
+      const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173/api/auth'}/verify/${verificationToken}`;
 
-    const htmlMessage = `
+      // Fallback for plain text clients
+      const message = `Please verify your email by clicking here: ${verifyUrl}`;
+
+      const htmlMessage = `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">
         <h2 style="color: #1a4331; margin-bottom: 20px;">Welcome to True Eats!</h2>
         <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
@@ -64,84 +65,83 @@ exports.registerUser = async (req, res) => {
       </div>
     `;
 
-    // Make sure to pass the htmlMessage as the 4th argument!
-    await sendEmail(user.email, 'True Eats - Verify Your Email', message, htmlMessage);
-    return res.status(201).json({
+      // Make sure to pass the htmlMessage as the 4th argument!
+      await sendEmail(user.email, 'True Eats - Verify Your Email', message, htmlMessage);
+      return res.status(201).json({
         message: 'Signup successful. Please check your email to verify your account.',
-    });
-}
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }   
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // @desc    Verify email
 // @route   GET /api/auth/verify/:token
 exports.verifyEmail = async (req, res) => {
-    try {
-        const { token } = req.params;
+  try {
+    const { token } = req.params;
 
-        // 1. Find the user with this specific token
-        const user = await User.findOne({ verificationToken: token });
+    // 1. Find the user with this specific token
+    const user = await User.findOne({ verificationToken: token });
 
-        if (!user) {
-            return res.status(400).json({ message: "Invalid or expired verification token" });
-        }
-
-        // 2. Update the user: Verify them and remove the token
-        user.isVerified = true;
-        user.verificationToken = undefined; // Remove the token so it can't be used again
-        await user.save();
-
-        // 3. For now, send a success message (Later, we will redirect to React Login)
-        res.status(200).send(`
-            <h1>Email Verified Successfully!</h1>
-            <p>Your True Eats account is now active. You can close this tab and log in.</p>
+    if (!user) {
+      return res.status(400).send(`
+            <h1>Verification Failed</h1>
+            <p>Invalid or expired verification token.</p>
         `);
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
     }
-};
 
-const generateToken = require('../utils/generateToken'); // Make sure this file exists!
+    // 2. Update the user: Verify them and remove the token
+    user.isVerified = true;
+    user.verificationToken = undefined; // Remove the token so it can't be used again
+    await user.save();
+
+    // 3. Redirect to React Login
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    return res.redirect(`${clientUrl}/login?verified=true`);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
 exports.loginUser = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        // 1. Find user by email
-        const user = await User.findOne({ email });
+    // 1. Find user by email
+    const user = await User.findOne({ email });
 
-        if (user) {
-            // 2. Check if Email is Verified (Crucial Security Step)
-            if (!user.isVerified) {
-                return res.status(401).json({ message: "Please verify your email before logging in." });
-            }
+    if (user) {
+      // 2. Check if Email is Verified (Crucial Security Step)
+      if (!user.isVerified) {
+        return res.status(401).json({ message: "Please verify your email before logging in." });
+      }
 
-            // 3. Check if password matches
-            const isMatch = await bcrypt.compare(password, user.password);
+      // 3. Check if password matches
+      const isMatch = await bcrypt.compare(password, user.password);
 
-            if (isMatch) {
-                // 4. Success! Send User Data + JWT Token
-                res.json({
-                    _id: user._id,
-                    firstName: user.firstName,
-                    email: user.email,
-                    role: user.role, // This tells React if they are Admin or Customer
-                    token: generateToken(user._id, user.role),
-                });
-            } else {
-                res.status(401).json({ message: "Invalid email or password" });
-            }
-        } else {
-            res.status(401).json({ message: "Invalid email or password" });
-        }
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+      if (isMatch) {
+        // 4. Success! Send User Data + JWT Token
+        res.json({
+          _id: user._id,
+          firstName: user.firstName,
+          email: user.email,
+          role: user.role, // This tells React if they are Admin or Customer
+          token: generateToken(user._id, user.role),
+        });
+      } else {
+        res.status(401).json({ message: "Invalid email or password" });
+      }
+    } else {
+      res.status(401).json({ message: "Invalid email or password" });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // @desc    Get user profile
@@ -170,7 +170,7 @@ exports.updateUserProfile = async (req, res) => {
       user.lastName = req.body.lastName || user.lastName;
       user.phoneNumber = req.body.phoneNumber || user.phoneNumber;
       user.altPhoneNumber = req.body.altPhoneNumber || user.altPhoneNumber;
-      
+
       if (req.body.address) {
         user.address = {
           doorNo: req.body.address.doorNo || user.address?.doorNo,
@@ -196,7 +196,8 @@ exports.forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
-      return res.status(404).json({ message: 'No user found with that email' });
+      // Security: don't reveal whether the email is registered or not
+      return res.status(200).json({ message: 'If that email is registered, a password reset link has been sent.' });
     }
 
     // Generate a secure, random crypto token
@@ -204,11 +205,11 @@ exports.forgotPassword = async (req, res) => {
 
     // Hash it and save it to the database with a 15-minute expiration
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; 
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     await user.save();
 
     // Send the email using your existing utility
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
     const message = `Please click on the following link to reset your password: ${resetUrl}`;
     const htmlMessage = `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">
@@ -242,14 +243,14 @@ exports.forgotPassword = async (req, res) => {
       res.json({ message: 'Password reset link sent to your email!' });
     } catch (error) {
       // If email sending fails, clear the reset token and expiration
-      user.resetPasswordToken = undefined;  
-        user.resetPasswordExpire = undefined;  
-        await user.save(); 
-        res.status(500).json({ message: 'Failed to send email. Please try again later.' }); 
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+      res.status(500).json({ message: 'Failed to send email. Please try again later.' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }     
+  }
 };
 // @desc    Reset Password
 // @route   PUT /api/auth/reset-password/:token
@@ -267,10 +268,15 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
 
+    // Validate that a new password was actually provided
+    if (!req.body.password || req.body.password.trim().length === 0) {
+      return res.status(400).json({ message: 'Password cannot be empty' });
+    }
+
     // Hash the new password and save
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(req.body.password, salt);
-    
+
     // Clear the reset fields so the token can't be used again
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;

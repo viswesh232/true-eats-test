@@ -11,6 +11,8 @@ const {
     updateDeliveryInfo,
     confirmPayment,
     sendOrderUpdate,
+    recordFailedPayment,
+    userCancelOrder,
 } = require('../controllers/orderController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
@@ -18,6 +20,7 @@ const { protect, admin } = require('../middleware/authMiddleware');
 router.get('/stats/revenue',       protect, admin,    getRevenueStats);
 router.get('/myorders',            protect,           getMyOrders);
 router.post('/create-razorpay-order', protect,        createRazorpayOrder);
+router.post('/record-failed',      protect,           recordFailedPayment);
 
 // General
 router.post('/',   protect, createOrder);
@@ -25,6 +28,7 @@ router.get('/',    protect, admin, getOrders);
 router.get('/:id', protect, getOrderById);
 
 // ID-based mutations
+router.put('/:id/cancel',          protect, userCancelOrder);
 router.put('/:id/status',          protect, admin, updateOrderStatus);
 router.put('/:id/delivery',        protect, admin, updateDeliveryInfo);
 router.put('/:id/confirm-payment', protect, admin, confirmPayment);

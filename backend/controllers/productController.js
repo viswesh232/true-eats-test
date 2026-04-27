@@ -16,7 +16,7 @@ exports.getProducts = async (req, res) => {
 // @route POST /api/products
 exports.createProduct = async (req, res) => {
     try {
-        const { name, price, category, description, isAvailable, urlImages } = req.body;
+        const { name, price, category, description, isAvailable, urlImages, ingredients, shelfLife, instructions, weights } = req.body;
 
         if (!name || !price || !category || !description) {
             return res.status(400).json({ message: 'Name, price, category and description are required' });
@@ -33,6 +33,12 @@ exports.createProduct = async (req, res) => {
             images = [...images, ...filePaths];
         }
 
+        let parsedWeights = [];
+        if (weights) {
+            try { parsedWeights = typeof weights === 'string' ? JSON.parse(weights) : weights; }
+            catch(e) {}
+        }
+
         const product = new Product({
             name,
             price: Number(price),
@@ -40,6 +46,10 @@ exports.createProduct = async (req, res) => {
             description,
             isAvailable: isAvailable === 'true' || isAvailable === true,
             images,
+            ingredients: ingredients || '',
+            shelfLife: shelfLife || '',
+            instructions: instructions || '',
+            weights: parsedWeights
         });
 
         await product.save();
@@ -60,20 +70,33 @@ exports.updateProduct = async (req, res) => {
 
         if (isJson) {
             // Simple toggle (availability, or any single field)
-            const { name, price, category, description, isAvailable } = req.body;
+            const { name, price, category, description, isAvailable, ingredients, shelfLife, instructions, weights } = req.body;
             if (name        !== undefined) product.name        = name;
             if (price       !== undefined) product.price       = Number(price);
             if (category    !== undefined) product.category    = category;
             if (description !== undefined) product.description = description;
             if (isAvailable !== undefined) product.isAvailable = isAvailable;
+            if (ingredients !== undefined) product.ingredients = ingredients;
+            if (shelfLife   !== undefined) product.shelfLife   = shelfLife;
+            if (instructions!== undefined) product.instructions= instructions;
+            if (weights     !== undefined) product.weights     = weights;
         } else {
             // Full FormData edit
-            const { name, price, category, description, isAvailable, urlImages } = req.body;
+            const { name, price, category, description, isAvailable, urlImages, ingredients, shelfLife, instructions, weights } = req.body;
 
             if (name)        product.name        = name;
             if (price)       product.price       = Number(price);
             if (category)    product.category    = category;
             if (description) product.description = description;
+            if (ingredients !== undefined) product.ingredients = ingredients;
+            if (shelfLife   !== undefined) product.shelfLife   = shelfLife;
+            if (instructions!== undefined) product.instructions= instructions;
+            
+            if (weights) {
+                try { product.weights = typeof weights === 'string' ? JSON.parse(weights) : weights; }
+                catch(e) {}
+            }
+
             product.isAvailable = isAvailable === 'true' || isAvailable === true;
 
             // Build new images array
