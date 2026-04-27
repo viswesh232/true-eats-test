@@ -27,7 +27,7 @@ const DeliveryInfo = () => {
             setOrders(data);
             
             // Auto-select first pending order if nothing is selected
-            const pending = data.filter(o => o.status === 'Delivered' && !o.trackingId);
+            const pending = data.filter(o => o.status === 'Preparing');
             if (pending.length > 0 && !selectedOrder) setSelectedOrder(pending[0]);
         } catch (err) { console.error(err); }
     };
@@ -38,7 +38,7 @@ const DeliveryInfo = () => {
                 const { data } = await API.get('/orders');
                 setOrders(data);
 
-                const pending = data.filter(o => o.status === 'Delivered' && !o.trackingId);
+                const pending = data.filter(o => o.status === 'Preparing');
                 if (pending.length > 0) {
                     setSelectedOrder(current => current || pending[0]);
                 }
@@ -84,7 +84,7 @@ const DeliveryInfo = () => {
         });
     };
 
-    const pendingList = filterBySearch(orders.filter(o => o.status === 'Delivered' && !o.trackingId));
+    const pendingList = filterBySearch(orders.filter(o => o.status === 'Preparing'));
     const pastList = filterBySearch(orders.filter(o => o.status === 'Shipped' || (o.status === 'Delivered' && o.trackingId)));
 
     return (
@@ -136,7 +136,9 @@ const DeliveryInfo = () => {
                             {pastList.map(o => (
                                 <div key={o._id} onClick={() => { setSelectedOrder(o); setTrackingId(o.trackingId || ''); }} style={orderItemStyle(selectedOrder?._id === o._id, colors, true)}>
                                     <div style={{ fontWeight: 'bold' }}>#{o.orderId}</div>
-                                    <div style={{ fontSize: '11px', color: '#16a34a' }}>✓ ALREADY SHIPPED</div>
+                                    <div style={{ fontSize: '11px', color: o.status === 'Delivered' ? '#16a34a' : '#0ea5e9' }}>
+                                        {o.status === 'Delivered' ? '✓ DELIVERED' : '✓ SHIPPED'}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -147,7 +149,7 @@ const DeliveryInfo = () => {
                 {selectedOrder && (
                     <div style={{ backgroundColor: '#fff', borderRadius: '30px', padding: '40px', boxShadow: '0 20px 50px rgba(0,0,0,0.05)' }}>
                         <h2 style={{ color: colors.forest, marginTop: 0, marginBottom: '30px' }}>
-                            {selectedOrder.status === 'Shipped' ? 'Update Shipped Order' : 'Fulfill New Order'} #{selectedOrder.orderId}
+                            {selectedOrder.status === 'Shipped' ? 'Update Shipped Order' : selectedOrder.status === 'Delivered' ? 'Delivered Order' : 'Fulfill New Order'} #{selectedOrder.orderId}
                         </h2>
                         
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '30px' }}>
@@ -187,15 +189,41 @@ const DeliveryInfo = () => {
 
                             <button 
                                 onClick={handleDispatch}
-                                disabled={loading}
+                                disabled={loading || selectedOrder.status === 'Delivered'}
                                 style={{ 
-                                    width: '100%', backgroundColor: colors.forest, color: '#fff', border: 'none', 
-                                    padding: '18px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer',
+                                    width: '100%', backgroundColor: selectedOrder.status === 'Delivered' ? '#94a3b8' : colors.forest, color: '#fff', border: 'none', 
+                                    padding: '18px', borderRadius: '12px', fontWeight: 'bold', cursor: selectedOrder.status === 'Delivered' ? 'not-allowed' : 'pointer',
                                     display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center'
                                 }}
                             >
-                                <Send size={18}/> {selectedOrder.status === 'Shipped' ? "Update & Re-send Email" : "Confirm Dispatch & Send Email"}
+                                <Send size={18}/> {selectedOrder.status === 'Shipped' ? "Update & Re-send Email" : selectedOrder.status === 'Delivered' ? "Order Completed" : "Confirm Dispatch & Send Email"}
                             </button>
+
+                            {selectedOrder.status === 'Shipped' && (
+                                <button 
+                                    onClick={async () => {
+                                        if(!window.confirm('Mark this order as successfully delivered?')) return;
+                                        setLoading(true);
+                                        try {
+                                            await API.put(`/orders/${selectedOrder._id}/status`, { status: 'Delivered' });
+                                            alert('Order marked as Delivered!');
+                                            fetchAllOrders();
+                                            setSelectedOrder(null);
+                                        } catch {
+                                            alert('Failed to mark as delivered');
+                                        }
+                                        setLoading(false);
+                                    }}
+                                    disabled={loading}
+                                    style={{ 
+                                        width: '100%', backgroundColor: '#16a34a', color: '#fff', border: 'none', 
+                                        padding: '18px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', marginTop: '12px'
+                                    }}
+                                >
+                                    <CheckCircle size={18}/> Mark as Delivered Successfully
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}

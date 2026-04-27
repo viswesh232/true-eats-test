@@ -3,19 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
-import { Trash2, Minus, Plus, ArrowLeft, ShoppingBag, Tag, X, CheckCircle } from 'lucide-react';
+import { Trash2, Minus, Plus, X, Tag, ChevronRight, Truck, CheckCircle, ArrowLeft } from 'lucide-react';
 
-const colors = {
-    cream: '#fcfaf6',
-    white: '#ffffff',
-    ink: '#1f2937',
-    muted: '#6b7280',
-    border: '#e7e0d4',
-    forest: '#234232',
-    softForest: '#eef5ef',
-    orange: '#dd7a2f',
-    blush: '#fff1e4',
-    danger: '#dc2626',
+const backendUrl = API.defaults.baseURL.replace('/api', '');
+const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('/uploads')) return `${backendUrl}${url}`;
+    return url;
 };
 
 const formatPrice = (amount) => new Intl.NumberFormat('en-IN', {
@@ -24,8 +18,19 @@ const formatPrice = (amount) => new Intl.NumberFormat('en-IN', {
     maximumFractionDigits: 0,
 }).format(amount || 0);
 
+const colors = {
+    primary: '#472b29',
+    accent: '#218856',
+    background: '#f9fafb',
+    surface: '#ffffff',
+    text: '#111827',
+    muted: '#6b7280',
+    border: '#e5e7eb',
+    danger: '#ef4444',
+};
+
 const Cart = () => {
-    const { cartItems, addToCart, removeFromCart, clearCart } = useContext(CartContext);
+    const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -35,22 +40,18 @@ const Cart = () => {
     const [couponError, setCouponError] = useState('');
     const [userDiscount, setUserDiscount] = useState(null);
     const [publicCoupons, setPublicCoupons] = useState([]);
+    const [showCoupons, setShowCoupons] = useState(false);
 
     useEffect(() => {
         API.get('/settings').then(({ data }) => setSettings(data)).catch(() => {});
         API.get('/settings/public-coupons').then(({ data }) => setPublicCoupons(data)).catch(() => {});
 
         if (user?._id) {
-            API.get(`/settings/user-discount/${user._id}`)
-                .then(({ data }) => setUserDiscount(data))
-                .catch(() => setUserDiscount(null));
+            API.get(`/settings/user-discount/${user._id}`).then(({ data }) => setUserDiscount(data)).catch(() => setUserDiscount(null));
         }
     }, [user]);
 
-    const subtotal = useMemo(
-        () => cartItems.reduce((acc, item) => acc + item.price * item.qty, 0),
-        [cartItems]
-    );
+    const subtotal = useMemo(() => cartItems.reduce((acc, item) => acc + item.price * item.qty, 0), [cartItems]);
 
     const rawDelivery = settings?.deliveryFee ?? 40;
     const freeThreshold = settings?.freeDeliveryEnabled ? (settings?.freeDeliveryAbove ?? 499) : Infinity;
@@ -62,254 +63,186 @@ const Cart = () => {
     const couponMinOrder = couponResult?.coupon?.minOrder || 0;
     const couponInvalidForSubtotal = Boolean(couponResult && couponMinOrder > 0 && subtotal < couponMinOrder);
     const activeCoupon = couponInvalidForSubtotal ? null : couponResult;
-    const derivedCouponError = couponInvalidForSubtotal
-        ? `Coupon removed: minimum order of ${formatPrice(couponMinOrder)} required.`
-        : couponError;
+    const derivedCouponError = couponInvalidForSubtotal ? `Coupon removed: minimum order of ${formatPrice(couponMinOrder)} required.` : couponError;
     const couponDiscount = activeCoupon?.discount || 0;
 
     const activeUserDiscount = user ? userDiscount : null;
-    const userDiscountAmt = activeUserDiscount
-        ? (activeUserDiscount.type === 'percent'
-            ? Math.round((subtotal * activeUserDiscount.value) / 100)
-            : activeUserDiscount.value)
-        : 0;
-
+    const userDiscountAmt = activeUserDiscount ? (activeUserDiscount.type === 'percent' ? Math.round((subtotal * activeUserDiscount.value) / 100) : activeUserDiscount.value) : 0;
     const total = Math.max(0, subtotal + deliveryFee + platformFee + gstAmount - couponDiscount - userDiscountAmt);
 
-    const handleApplyCoupon = async () => {
-        const code = couponCode.trim().toUpperCase();
-        if (!code) {
-            setCouponError('Enter a coupon code first.');
-            setCouponResult(null);
-            return;
-        }
+    const handleApplyCoupon = async (codeToApply = couponCode) => {
+        const code = codeToApply.trim().toUpperCase();
+        if (!code) { setCouponError('Enter a coupon code first.'); setCouponResult(null); return; }
 
-        setCouponError('');
-        setCouponResult(null);
-
+        setCouponError(''); setCouponResult(null);
         try {
             const { data } = await API.post('/settings/validate-coupon', { code, subtotal });
-            setCouponCode(code);
-            setCouponResult(data);
+            setCouponCode(code); setCouponResult(data); setShowCoupons(false);
         } catch (err) {
             setCouponError(err.response?.data?.message || 'Invalid coupon code.');
         }
     };
 
     const handleCheckout = () => {
-        if (!user) {
-            navigate('/login');
-            return;
-        }
-        if (settings && !settings.orderingEnabled) {
-            alert('Ordering is currently disabled. Please try again later.');
-            return;
-        }
-        if (settings && subtotal < settings.minOrderValue) {
-            alert(`Minimum order value is ${formatPrice(settings.minOrderValue)}.`);
-            return;
-        }
+        if (!user) { navigate('/login'); return; }
+        if (settings && !settings.orderingEnabled) { alert('Ordering is currently disabled. Please try again later.'); return; }
+        if (settings && subtotal < settings.minOrderValue) { alert(`Minimum order value is ${formatPrice(settings.minOrderValue)}.`); return; }
 
-        navigate('/checkout', {
-            state: {
-                coupon: activeCoupon,
-                userDiscount: activeUserDiscount,
-            },
-        });
+        navigate('/checkout', { state: { coupon: activeCoupon, userDiscount: activeUserDiscount } });
     };
 
-    if (cartItems.length === 0) {
-        return (
-            <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', backgroundColor: colors.cream, padding: '24px' }}>
-                <div style={{ textAlign: 'center', maxWidth: '420px' }}>
-                    <div style={{ width: '88px', height: '88px', margin: '0 auto 20px', borderRadius: '50%', backgroundColor: colors.softForest, display: 'grid', placeItems: 'center' }}>
-                        <ShoppingBag size={40} color={colors.forest} />
-                    </div>
-                    <h2 style={{ margin: '0 0 10px', color: colors.ink, fontSize: '30px' }}>Your cart is empty</h2>
-                    <p style={{ margin: 0, color: colors.muted, lineHeight: 1.7 }}>Add a few items from the menu and we will bring everything together here.</p>
-                    <button onClick={() => navigate('/')} style={{ marginTop: '24px', padding: '14px 26px', borderRadius: '999px', border: 'none', backgroundColor: colors.forest, color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
-                        Back to Home
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    const amountForFreeShipping = Math.max(0, freeThreshold - subtotal);
+    const freeShippingProgress = Math.min(100, (subtotal / freeThreshold) * 100);
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: colors.cream, fontFamily: "'Inter', sans-serif", color: colors.ink }}>
-            <div style={{ maxWidth: '1180px', margin: '0 auto', padding: '32px 20px 56px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '28px', flexWrap: 'wrap' }}>
-                    <button onClick={() => navigate('/')} style={{ border: '1px solid ' + colors.border, backgroundColor: colors.white, borderRadius: '999px', padding: '10px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', color: colors.ink }}>
-                        <ArrowLeft size={16} /> Continue shopping
-                    </button>
-                    <div>
-                        <h1 style={{ margin: 0, fontSize: '34px' }}>Your cart</h1>
-                        <p style={{ margin: '6px 0 0', color: colors.muted }}>Review your items, offers, and totals before checkout.</p>
+        <div style={{ minHeight: '100vh', backgroundColor: colors.background, fontFamily: "'Inter', sans-serif", color: colors.text, padding: 'clamp(16px, 4vw, 40px) clamp(16px, 4vw, 32px)' }}>
+            <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: colors.muted, fontWeight: 600, fontSize: '14px', width: 'fit-content' }}>
+                    <ArrowLeft size={16} /> Continue Shopping
+                </button>
+
+                <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: colors.primary, letterSpacing: '-0.5px' }}>Shopping Cart</h1>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '32px', alignItems: 'flex-start' }}>
+                    {/* Left Column - Cart Items */}
+                    <div style={{ flex: '1 1 500px', backgroundColor: colors.surface, borderRadius: '16px', border: `1px solid ${colors.border}`, padding: 'clamp(16px, 4vw, 32px)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                        {cartItems.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                                <div style={{ width: '80px', height: '80px', margin: '0 auto 20px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'grid', placeItems: 'center' }}>
+                                    <Trash2 size={32} color={colors.muted} />
+                                </div>
+                                <h2 style={{ fontSize: '20px', color: colors.primary, marginBottom: '8px' }}>Your cart is empty</h2>
+                                <p style={{ color: colors.muted, marginBottom: '24px' }}>Add your favorite items to proceed.</p>
+                                <button onClick={() => navigate('/')} style={{ padding: '12px 24px', borderRadius: '8px', border: `1px solid ${colors.primary}`, backgroundColor: '#fff', color: colors.primary, fontWeight: 700, cursor: 'pointer' }}>
+                                    Start Shopping
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'grid', gap: '24px' }}>
+                                {settings?.freeDeliveryEnabled && (
+                                    <div style={{ padding: '16px', backgroundColor: '#f0fdf4', border: `1px solid #bbf7d0`, borderRadius: '12px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px', fontSize: '14px', fontWeight: 700, color: colors.accent }}>
+                                            <Truck size={18} />
+                                            {amountForFreeShipping > 0 ? `Add items worth ${formatPrice(amountForFreeShipping)} to get Free Shipping` : 'You have unlocked Free Shipping!'}
+                                        </div>
+                                        <div style={{ height: '6px', backgroundColor: '#dcfce7', borderRadius: '4px', overflow: 'hidden' }}>
+                                            <div style={{ width: `${freeShippingProgress}%`, height: '100%', backgroundColor: colors.accent, transition: 'width 0.3s ease' }} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {cartItems.map((item) => {
+                                    const imageUrl = getImageUrl((item.images && item.images[0]) || item.image || '');
+                                    return (
+                                        <div key={item.cartId} style={{ display: 'flex', gap: '16px', paddingBottom: '24px', borderBottom: `1px solid ${colors.border}` }}>
+                                            <img src={imageUrl || 'https://via.placeholder.com/80'} alt={item.name} style={{ width: 'clamp(80px, 15vw, 100px)', height: 'clamp(80px, 15vw, 100px)', objectFit: 'cover', borderRadius: '12px', border: `1px solid ${colors.border}`, backgroundColor: '#fff' }} />
+                                            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                    <div>
+                                                        <h3 style={{ margin: '0 0 4px', fontSize: '16px', fontWeight: 700, color: colors.text }}>{item.name}</h3>
+                                                        {item.weight && <div style={{ fontSize: '13px', color: colors.muted, marginBottom: '6px' }}>{item.weight}</div>}
+                                                    </div>
+                                                    <div style={{ fontSize: '16px', fontWeight: 800, color: colors.text }}>{formatPrice(item.price)}</div>
+                                                </div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '12px' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${colors.border}`, borderRadius: '8px', backgroundColor: '#f9fafb' }}>
+                                                        <button onClick={() => removeFromCart(item)} style={{ width: '36px', height: '36px', border: 'none', background: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', color: colors.primary }}>
+                                                            <Minus size={16} />
+                                                        </button>
+                                                        <span style={{ width: '36px', textAlign: 'center', fontSize: '14px', fontWeight: 700 }}>{item.qty}</span>
+                                                        <button onClick={() => addToCart(item)} style={{ width: '36px', height: '36px', border: 'none', background: 'none', cursor: 'pointer', display: 'grid', placeItems: 'center', color: colors.primary }}>
+                                                            <Plus size={16} />
+                                                        </button>
+                                                    </div>
+                                                    <button onClick={() => {
+                                                        const itemToTrash = { ...item };
+                                                        itemToTrash.qty = 1;
+                                                        while (cartItems.find(x => x.cartId === item.cartId)?.qty > 0) { removeFromCart(itemToTrash); }
+                                                    }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, padding: '4px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <Trash2 size={14} /> REMOVE
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                    {settings && !settings.orderingEnabled && (
-                        <div style={{ marginLeft: 'auto', padding: '10px 14px', borderRadius: '999px', backgroundColor: '#fee2e2', color: '#991b1b', fontSize: '13px', fontWeight: 700 }}>
-                            Ordering is currently disabled
+
+                    {/* Right Column - Summary */}
+                    {cartItems.length > 0 && (
+                        <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                            <div style={{ backgroundColor: colors.surface, borderRadius: '16px', border: `1px solid ${colors.border}`, padding: 'clamp(20px, 4vw, 32px)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                                <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 20px' }}>Order Summary</h2>
+                                
+                                <div style={{ display: 'grid', gap: '12px', marginBottom: '24px' }}>
+                                    <Row label="Subtotal" value={formatPrice(subtotal)} />
+                                    <Row label="Shipping" value={deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)} highlight={deliveryFee === 0} />
+                                    {couponDiscount > 0 && <Row label="Coupon Discount" value={`-${formatPrice(couponDiscount)}`} highlight />}
+                                    {userDiscountAmt > 0 && <Row label="First Order Discount" value={`-${formatPrice(userDiscountAmt)}`} highlight />}
+                                    {platformFee > 0 && <Row label="Platform Fee" value={formatPrice(platformFee)} />}
+                                </div>
+
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '20px', borderTop: `1px solid ${colors.border}`, marginBottom: '24px' }}>
+                                    <span style={{ fontSize: '16px', fontWeight: 700 }}>Estimated Total</span>
+                                    <span style={{ fontSize: '24px', fontWeight: 900, color: colors.text }}>{formatPrice(total)}</span>
+                                </div>
+
+                                <button
+                                    onClick={handleCheckout}
+                                    disabled={Boolean(settings && (!settings.orderingEnabled || subtotal < settings.minOrderValue))}
+                                    style={{
+                                        width: '100%', padding: '18px', borderRadius: '12px', border: 'none',
+                                        backgroundColor: settings && (!settings.orderingEnabled || subtotal < settings.minOrderValue) ? colors.muted : colors.primary,
+                                        color: '#fff', fontWeight: 800, fontSize: '16px', cursor: settings && (!settings.orderingEnabled || subtotal < settings.minOrderValue) ? 'not-allowed' : 'pointer',
+                                    }}
+                                >
+                                    {settings && !settings.orderingEnabled ? 'ORDERING DISABLED' : settings && subtotal < settings.minOrderValue ? `MIN ORDER ${formatPrice(settings.minOrderValue)}` : 'PROCEED TO CHECKOUT'}
+                                </button>
+                            </div>
+
+                            {/* Coupons Section */}
+                            <div style={{ backgroundColor: colors.surface, borderRadius: '16px', border: `1px solid ${colors.border}`, padding: 'clamp(20px, 4vw, 32px)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Tag size={18} color={colors.accent} /> Coupons & Offers
+                                </h3>
+                                
+                                {activeCoupon ? (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px dashed ${colors.accent}`, backgroundColor: '#f0fdf4', borderRadius: '12px', padding: '16px' }}>
+                                        <div>
+                                            <div style={{ fontSize: '14px', fontWeight: 800, color: colors.accent }}>'{activeCoupon.coupon.code}' applied</div>
+                                            <div style={{ fontSize: '12px', color: colors.accent, marginTop: '2px' }}>You saved {formatPrice(activeCoupon.discount)}</div>
+                                        </div>
+                                        <button onClick={() => { setCouponResult(null); setCouponCode(''); }} style={{ background: 'none', border: 'none', color: colors.danger, fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>REMOVE</button>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                                            <input value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())} placeholder="Enter promo code" style={{ flex: 1, padding: '12px 14px', border: `1px solid ${colors.border}`, borderRadius: '10px', fontSize: '14px', outline: 'none' }} />
+                                            <button onClick={() => handleApplyCoupon()} style={{ padding: '0 20px', backgroundColor: colors.background, border: `1px solid ${colors.border}`, color: colors.text, borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}>APPLY</button>
+                                        </div>
+                                        {derivedCouponError && <div style={{ color: colors.danger, fontSize: '13px', marginBottom: '16px', fontWeight: 600 }}>{derivedCouponError}</div>}
+                                        
+                                        {publicCoupons.length > 0 && (
+                                            <div style={{ display: 'grid', gap: '12px' }}>
+                                                {publicCoupons.map((coupon) => (
+                                                    <div key={coupon._id || coupon.code} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', border: `1px dashed ${colors.border}`, borderRadius: '10px', backgroundColor: '#fafafa' }}>
+                                                        <div>
+                                                            <div style={{ fontWeight: 800, fontSize: '14px', color: colors.primary }}>{coupon.code}</div>
+                                                            <div style={{ fontSize: '12px', color: colors.muted, marginTop: '4px' }}>{coupon.desc || `${coupon.type === 'percent' ? coupon.value + '%' : formatPrice(coupon.value)} off`}</div>
+                                                        </div>
+                                                        <button onClick={() => handleApplyCoupon(coupon.code)} style={{ color: colors.accent, fontWeight: 800, fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer' }}>APPLY</button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 360px', gap: '28px', alignItems: 'start' }}>
-                    <div style={{ display: 'grid', gap: '20px' }}>
-                        <div style={{ backgroundColor: colors.white, border: `1px solid ${colors.border}`, borderRadius: '24px', padding: '24px' }}>
-                            {cartItems.map((item) => (
-                                <div key={item._id} style={{ display: 'grid', gridTemplateColumns: '92px minmax(0, 1fr) auto', gap: '18px', alignItems: 'center', padding: '18px 0', borderBottom: '1px solid #f1ede5' }}>
-                                    <img src={(item.images && item.images[0]) || item.image || ''} alt={item.name} style={{ width: '92px', height: '92px', objectFit: 'cover', borderRadius: '18px', backgroundColor: '#f3f4f6' }} />
-                                    <div>
-                                        <h3 style={{ margin: '0 0 8px', fontSize: '18px' }}>{item.name}</h3>
-                                        <div style={{ color: colors.muted, fontSize: '14px' }}>{formatPrice(item.price)} each</div>
-                                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginTop: '14px', border: '1px solid ' + colors.border, borderRadius: '999px', padding: '8px 12px' }}>
-                                            <button onClick={() => removeFromCart(item)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex', color: colors.ink }}>
-                                                <Minus size={16} />
-                                            </button>
-                                            <span style={{ minWidth: '18px', textAlign: 'center', fontWeight: 700 }}>{item.qty}</span>
-                                            <button onClick={() => addToCart(item)} style={{ border: 'none', background: 'none', cursor: 'pointer', display: 'flex', color: colors.ink }}>
-                                                <Plus size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontSize: '18px', fontWeight: 800 }}>{formatPrice(item.price * item.qty)}</div>
-                                    </div>
-                                </div>
-                            ))}
-                            <button onClick={clearCart} style={{ marginTop: '18px', border: 'none', background: 'none', color: colors.danger, cursor: 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                                <Trash2 size={15} /> Clear cart
-                            </button>
-                        </div>
-
-                        {publicCoupons.length > 0 && (
-                            <div style={{ backgroundColor: colors.white, border: `1px solid ${colors.border}`, borderRadius: '24px', padding: '24px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', fontWeight: 800 }}>
-                                    <Tag size={16} color={colors.orange} /> Available offers
-                                </div>
-                                <div style={{ display: 'grid', gap: '12px' }}>
-                                    {publicCoupons.map((coupon) => (
-                                        <button
-                                            key={coupon._id || coupon.code}
-                                            onClick={() => {
-                                                setCouponCode(coupon.code);
-                                                setCouponResult(null);
-                                                setCouponError('');
-                                            }}
-                                            style={{
-                                                border: '1px solid ' + colors.border,
-                                                borderRadius: '18px',
-                                                backgroundColor: colors.blush,
-                                                padding: '14px 16px',
-                                                cursor: 'pointer',
-                                                textAlign: 'left',
-                                                display: 'flex',
-                                                justifyContent: 'space-between',
-                                                gap: '12px',
-                                            }}
-                                        >
-                                            <div>
-                                                <div style={{ fontWeight: 800, letterSpacing: '0.08em' }}>{coupon.code}</div>
-                                                <div style={{ marginTop: '6px', color: colors.muted, fontSize: '13px' }}>{coupon.desc || 'Tap to use this offer.'}</div>
-                                            </div>
-                                            <div style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
-                                                <div style={{ color: colors.forest, fontWeight: 800 }}>{coupon.type === 'percent' ? `${coupon.value}% off` : `${formatPrice(coupon.value)} off`}</div>
-                                                {coupon.minOrder > 0 && <div style={{ marginTop: '6px', color: colors.muted, fontSize: '12px' }}>Min {formatPrice(coupon.minOrder)}</div>}
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <div style={{ backgroundColor: colors.white, border: `1px solid ${colors.border}`, borderRadius: '24px', padding: '24px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontWeight: 800 }}>
-                                <Tag size={16} color={colors.orange} /> Coupon code
-                            </div>
-                            {activeCoupon ? (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', border: '1px solid #bbf7d0', borderRadius: '18px', padding: '14px 16px', backgroundColor: '#f0fdf4' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <CheckCircle size={18} color='#059669' />
-                                        <div>
-                                            <div style={{ fontWeight: 800 }}>{activeCoupon.coupon.code}</div>
-                                            <div style={{ color: colors.muted, fontSize: '13px' }}>{formatPrice(activeCoupon.discount)} saved</div>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => { setCouponResult(null); setCouponCode(''); }} style={{ border: 'none', background: 'none', cursor: 'pointer', color: colors.danger }}>
-                                        <X size={16} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                                    <input
-                                        value={couponCode}
-                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                                        placeholder='Enter coupon code'
-                                        style={{ flex: '1 1 240px', border: '1px solid ' + colors.border, borderRadius: '16px', padding: '14px 16px', fontSize: '14px', outline: 'none' }}
-                                    />
-                                    <button onClick={handleApplyCoupon} style={{ border: 'none', borderRadius: '16px', padding: '14px 18px', backgroundColor: colors.forest, color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
-                                        Apply
-                                    </button>
-                                </div>
-                            )}
-                            {derivedCouponError && <p style={{ margin: '10px 0 0', color: colors.danger, fontSize: '13px', fontWeight: 600 }}>{derivedCouponError}</p>}
-                        </div>
-                    </div>
-
-                    <aside style={{ backgroundColor: colors.white, border: `1px solid ${colors.border}`, borderRadius: '24px', padding: '24px', position: 'sticky', top: '20px' }}>
-                        <h2 style={{ margin: '0 0 18px', fontSize: '24px' }}>Order summary</h2>
-                        <div style={{ display: 'grid', gap: '12px', marginBottom: '18px' }}>
-                            <Row label='Subtotal' value={formatPrice(subtotal)} />
-                            <Row label={deliveryFee === 0 && subtotal > 0 ? 'Delivery' : 'Delivery fee'} value={deliveryFee === 0 && subtotal > 0 ? 'Free' : formatPrice(deliveryFee)} highlight={deliveryFee === 0 && subtotal > 0} />
-                            {platformFee > 0 && <Row label='Platform fee' value={formatPrice(platformFee)} />}
-                            {gstAmount > 0 && <Row label={`GST (${gstRate}%)`} value={formatPrice(gstAmount)} />}
-                            {couponDiscount > 0 && <Row label='Coupon discount' value={`- ${formatPrice(couponDiscount)}`} highlight />}
-                            {userDiscountAmt > 0 && <Row label={activeUserDiscount?.label || 'Discount'} value={`- ${formatPrice(userDiscountAmt)}`} highlight />}
-                        </div>
-
-                        {userDiscountAmt > 0 && (
-                            <div style={{ marginBottom: '14px', padding: '12px 14px', borderRadius: '16px', backgroundColor: colors.softForest, color: colors.forest, fontSize: '13px', fontWeight: 600 }}>
-                                First-order discount has been applied for this account.
-                            </div>
-                        )}
-
-                        {settings?.freeDeliveryEnabled && deliveryFee > 0 && subtotal > 0 && (
-                            <div style={{ marginBottom: '14px', padding: '12px 14px', borderRadius: '16px', backgroundColor: colors.blush, color: colors.orange, fontSize: '13px', fontWeight: 600 }}>
-                                Add {formatPrice(Math.max(settings.freeDeliveryAbove - subtotal, 0))} more for free delivery.
-                            </div>
-                        )}
-
-                        {settings && subtotal > 0 && subtotal < settings.minOrderValue && (
-                            <div style={{ marginBottom: '14px', padding: '12px 14px', borderRadius: '16px', backgroundColor: '#fef2f2', color: '#b91c1c', fontSize: '13px', fontWeight: 600 }}>
-                                Minimum order is {formatPrice(settings.minOrderValue)}. Add {formatPrice(settings.minOrderValue - subtotal)} more.
-                            </div>
-                        )}
-
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid ' + colors.border, paddingTop: '16px', marginTop: '10px' }}>
-                            <span style={{ fontSize: '16px', fontWeight: 700 }}>Total</span>
-                            <span style={{ fontSize: '28px', fontWeight: 900 }}>{formatPrice(total)}</span>
-                        </div>
-
-                        <button
-                            onClick={handleCheckout}
-                            disabled={Boolean(settings && (!settings.orderingEnabled || subtotal < settings.minOrderValue))}
-                            style={{
-                                marginTop: '20px',
-                                width: '100%',
-                                padding: '16px',
-                                borderRadius: '18px',
-                                border: 'none',
-                                backgroundColor: settings && (!settings.orderingEnabled || subtotal < settings.minOrderValue) ? '#cbd5e1' : colors.forest,
-                                color: '#fff',
-                                fontWeight: 800,
-                                fontSize: '15px',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            Proceed to checkout
-                        </button>
-                    </aside>
                 </div>
             </div>
         </div>
@@ -317,9 +250,9 @@ const Cart = () => {
 };
 
 const Row = ({ label, value, highlight = false }) => (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: highlight ? '#166534' : colors.ink, fontWeight: highlight ? 700 : 500 }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', color: highlight ? colors.accent : colors.muted, fontWeight: highlight ? 600 : 500 }}>
         <span>{label}</span>
-        <span>{value}</span>
+        <span style={{ color: highlight ? colors.accent : colors.text, fontWeight: highlight ? 700 : 600 }}>{value}</span>
     </div>
 );
 

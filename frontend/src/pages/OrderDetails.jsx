@@ -60,9 +60,22 @@ const OrderDetail = () => {
                 </div>
             )}
 
-            <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', color: c.forest, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '20px', fontSize: '14px' }}>
-                <ArrowLeft size={16} /> Back
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <button onClick={() => navigate(-1)} style={{ border: 'none', background: 'none', color: c.forest, fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '14px' }}>
+                    <ArrowLeft size={16} /> Back
+                </button>
+                {order.status !== 'Cancelled' && order.status !== 'Delivered' && (
+                    <button onClick={() => {
+                        if(window.confirm('Are you sure you want to CANCEL this order? This action cannot be undone.')) {
+                            API.put(`/orders/${order._id}/status`, { status: 'Cancelled' })
+                                .then(() => { showToast('Order Cancelled'); setOrder({...order, status: 'Cancelled'}); })
+                                .catch(err => alert(err.response?.data?.message || 'Error cancelling'));
+                        }
+                    }} style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', padding: '8px 16px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>
+                        Cancel Order
+                    </button>
+                )}
+            </div>
 
             <div style={{ maxWidth: '960px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
@@ -87,8 +100,15 @@ const OrderDetail = () => {
 
                         <div style={card}>
                             <h3 style={cardTitle}><MapPin size={16} /> Shipping Address</h3>
-                            <p style={{ margin: 0, color: '#475569', lineHeight: '1.6' }}>{order.shippingAddress || '—'}</p>
+                            <p style={{ margin: 0, color: '#475569', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{order.shippingAddress || '—'}</p>
                         </div>
+
+                        {order.customNote && (
+                            <div style={{ ...card, backgroundColor: '#fefce8', border: '2px solid #fde047' }}>
+                                <h3 style={{ ...cardTitle, color: '#854d0e' }}>Chef Instructions / Note</h3>
+                                <p style={{ margin: 0, color: '#a16207', fontWeight: 'bold', fontSize: '15px' }}>{order.customNote}</p>
+                            </div>
+                        )}
 
                         <div style={card}>
                             <h3 style={cardTitle}><Package size={16} /> Items Ordered</h3>
@@ -148,9 +168,9 @@ const OrderDetail = () => {
                                 <Send size={16} /> {sending ? 'Sending…' : 'Send Email Update'}
                             </button>
 
-                            {order.customNote && (
+                            {order.deliveryInfo?.customNote && (
                                 <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#f0fdf4', borderRadius: '10px', fontSize: '13px', color: '#065f46', borderLeft: '3px solid #10b981' }}>
-                                    <strong>Last sent:</strong> {order.customNote}
+                                    <strong>Last sent:</strong> {order.deliveryInfo.customNote}
                                 </div>
                             )}
                         </div>

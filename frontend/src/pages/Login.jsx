@@ -1,5 +1,5 @@
-import { useState, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useContext, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import API from '../api/axios';
 import { Utensils, Mail, Lock, Eye, EyeOff } from 'lucide-react';
@@ -11,8 +11,18 @@ const Login = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const [successMessage, setSuccessMessage] = useState('');
+
     const { setUser } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        if (queryParams.get('verified') === 'true') {
+            setSuccessMessage('Email verified successfully! You can now log in.');
+        }
+    }, [location]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -30,29 +40,34 @@ const Login = () => {
     };
 
     const inp = {
-        width: '100%', padding: '14px 16px 14px 44px', borderRadius: '14px',
+        width: '100%', padding: '14px 16px 14px 44px', borderRadius: '12px',
         border: '2px solid #e2e8f0', fontSize: '15px', outline: 'none',
-        boxSizing: 'border-box', backgroundColor: '#f8fafc', transition: '0.2s',
-        fontFamily: 'inherit',
+        boxSizing: 'border-box', backgroundColor: '#fff', transition: '0.2s',
+        fontFamily: 'inherit', color: '#213128'
     };
 
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: '#a9ffadff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif", padding: '20px' }}>
-            <div style={{ width: '100%', maxWidth: '420px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: '#f7f4ee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', sans-serif", padding: '20px' }}>
+            <div style={{ width: '100%', maxWidth: '440px' }}>
 
                 {/* Logo */}
-                <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', backgroundColor: '#1a4331', padding: '14px 28px', borderRadius: '20px', marginBottom: '16px' }}>
-                        <Utensils color="#fcd5ce" size={26} />
-                        <span style={{ color: '#fff', fontWeight: '900', fontSize: '22px', letterSpacing: '1px' }}>TRUE EATS</span>
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <div onClick={() => window.location.href = '/'} style={{ fontWeight: '900', fontSize: '28px', color: '#1a3a2a', cursor: 'pointer', letterSpacing: '-0.5px', marginBottom: '8px' }}>
+                        True<span style={{ color: '#a5c11f' }}>Eats</span>
                     </div>
-                    <p style={{ color: '#4a2c2a', fontSize: '15px', fontStyle: 'italic', margin: 0 }}>"The Way Food Was Meant To Be"</p>
+                    <p style={{ color: '#66756d', fontSize: '14px', fontStyle: 'italic', margin: 0 }}>"The Way Food Was Meant To Be"</p>
                 </div>
 
                 {/* Card */}
-                <div style={{ backgroundColor: '#fff', borderRadius: '28px', padding: '40px', boxShadow: '0 20px 50px rgba(26,67,49,0.12)' }}>
-                    <h2 style={{ margin: '0 0 6px', fontWeight: '900', color: '#1a4331', fontSize: '24px' }}>Welcome back</h2>
-                    <p style={{ margin: '0 0 28px', color: '#64748b', fontSize: '14px' }}>Sign in to your True Eats account</p>
+                <div style={{ backgroundColor: '#fff', borderRadius: '24px', padding: '40px', border: '1.5px solid #e5ddd2', boxShadow: '0 20px 44px rgba(35,49,40,0.08)' }}>
+                    <h2 style={{ margin: '0 0 6px', fontWeight: '900', color: '#1a3a2a', fontSize: '24px', letterSpacing: '-0.02em' }}>Welcome back</h2>
+                    <p style={{ margin: '0 0 28px', color: '#66756d', fontSize: '14px' }}>Sign in to your True Eats account</p>
+
+                    {successMessage && (
+                        <div style={{ backgroundColor: '#d1fae5', color: '#065f46', padding: '12px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: '600', marginBottom: '20px' }}>
+                            ✓ {successMessage}
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit}>
                         {/* Email */}
@@ -60,7 +75,7 @@ const Login = () => {
                             <Mail size={17} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
                             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
                                 placeholder="Email address" style={inp} required
-                                onFocus={e => e.target.style.borderColor = '#1a4331'}
+                                onFocus={e => e.target.style.borderColor = '#1a3a2a'}
                                 onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
                         </div>
 
@@ -69,7 +84,7 @@ const Login = () => {
                             <Lock size={17} color="#94a3b8" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
                             <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                                 placeholder="Password" style={inp} required
-                                onFocus={e => e.target.style.borderColor = '#1a4331'}
+                                onFocus={e => e.target.style.borderColor = '#1a3a2a'}
                                 onBlur={e => e.target.style.borderColor = '#e2e8f0'} />
                             <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: 0 }}>
                                 {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -79,7 +94,7 @@ const Login = () => {
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px', marginBottom: '20px' }}>
                             <Link
                                 to="/forgot-password"
-                                style={{ color: '#1a4331', fontSize: '13px', fontWeight: 'bold', textDecoration: 'none' }}
+                                style={{ color: '#1a3a2a', fontSize: '13px', fontWeight: 'bold', textDecoration: 'none' }}
                             >
                                 Forgot Password?
                             </Link>
@@ -92,7 +107,7 @@ const Login = () => {
                         )}
 
                         <button type="submit" disabled={loading} style={{
-                            width: '100%', padding: '16px', backgroundColor: '#1a4331', color: '#fff',
+                            width: '100%', padding: '16px', backgroundColor: '#1a3a2a', color: '#fff',
                             border: 'none', borderRadius: '14px', fontWeight: '800', fontSize: '16px',
                             cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
                             transition: '0.2s', letterSpacing: '0.5px'
@@ -101,9 +116,9 @@ const Login = () => {
                         </button>
                     </form>
 
-                    <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#64748b' }}>
+                    <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: '#66756d' }}>
                         Don't have an account?{' '}
-                        <Link to="/signup" style={{ color: '#1a4331', fontWeight: '700', textDecoration: 'none' }}>Create one</Link>
+                        <Link to="/signup" style={{ color: '#1a3a2a', fontWeight: '800', textDecoration: 'none' }}>Create one</Link>
                     </p>
                 </div>
             </div>

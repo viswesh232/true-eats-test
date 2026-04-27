@@ -1,31 +1,33 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import heroImage from '../assets/hero.png';
-
-// ─── ADD YOUR BANNERS HERE ────────────────────────────────────────────────────
-// Each banner needs: image, title, subtitle. Add as many as you like.
-const BANNERS = [
-    {
-        image: heroImage,
-        title: 'Premium quality,\ndirect to your door.',
-        subtitle: 'Handpicked food products packed fresh and delivered across India in 7–10 days.',
-    },
-    {
-        image: heroImage,
-        title: 'Eat better,\nlive better.',
-        subtitle: 'Clean ingredients, zero compromise. Every product is sourced and packed with care.',
-    },
-    // Add more banners by duplicating the block above ↑
-];
+import banner1 from '../assets/banner.png';
+import logo from '../assets/logo.jpg'
+import banner2 from '../assets/banner2.png'
 import {
     ShoppingCart, Search, ArrowRight, UserRound, Minus, Plus,
     Camera, MessagesSquare, Play, Phone, MapPin,
     ChevronLeft, ChevronRight, Star, Clock, Truck, Shield, Menu, X,
 } from 'lucide-react';
 import './Home.css';
+
+// ─── ADD YOUR BANNERS HERE ────────────────────────────────────────────────────
+// Each banner needs: image, title, subtitle. Add as many as you like.
+const BANNERS = [
+    {
+        image: banner1,
+        title: 'Premium quality,\ndirect to your door.',
+        subtitle: 'Handpicked food products packed fresh and delivered across India in 7–10 days.',
+    },
+    {
+        image: banner2,
+        title: 'Eat better,\nlive better.',
+        subtitle: 'Clean ingredients, zero compromise. Every product is sourced and packed with care.',
+    },
+];
 
 const fmt = (n) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n || 0);
 
@@ -38,32 +40,55 @@ const PERKS = [
 ];
 
 export default function Home() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [products, setProducts] = useState([]);
-    const [announcements, setAnnouncements] = useState([]);
+
     const [categories, setCategories] = useState(['All']);
     const [activeCategory, setActiveCategory] = useState('All');
-    const [searchTerm, setSearchTerm] = useState('');
+
+    const queryParams = new URLSearchParams(location.search);
+    const searchParam = queryParams.get('search') || '';
+    const scrollToMenuParam = queryParams.get('scrollToMenu') === 'true';
+
+    const [searchTerm, setSearchTerm] = useState(searchParam);
     const [toast, setToast] = useState('');
     const [bannerIdx, setBannerIdx] = useState(0);
-    const [scrolled, setScrolled] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const [imgIdx, setImgIdx] = useState({});
 
-    const { user, logout } = useContext(AuthContext);
-    const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
-    const navigate = useNavigate();
+    const [quickAddProduct, setQuickAddProduct] = useState(null);
+    const [selectedVariant, setSelectedVariant] = useState(null);
+    const [modalQty, setModalQty] = useState(1);
+    const [modalImageIdx, setModalImageIdx] = useState(0);
+
+    const { cartItems, addToCart } = useContext(CartContext);
+
+    useEffect(() => {
+        if (searchParam) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSearchTerm(searchParam);
+            document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [searchParam]);
+
+    useEffect(() => {
+        if (scrollToMenuParam) {
+            // Slight delay ensures the DOM is fully painted if we just routed from another page
+            setTimeout(() => {
+                document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    }, [scrollToMenuParam]);
 
     useEffect(() => {
         (async () => {
             try {
-                const [{ data: menu }, settingsRes] = await Promise.all([
+                const [{ data: menu }] = await Promise.all([
                     API.get('/products'),
                     API.get('/settings').catch(() => ({ data: {} })),
                 ]);
-                const s = settingsRes?.data || {};
                 setProducts(menu || []);
                 setCategories(['All', ...new Set((menu || []).map(p => p.category).filter(Boolean))]);
-                setAnnouncements((s.announcements || []).filter(a => a.active && a.text?.trim()));
             } catch (e) { console.error(e); }
         })();
     }, []);
@@ -74,32 +99,32 @@ export default function Home() {
         return () => clearInterval(t);
     }, []);
 
-    useEffect(() => {
-        const fn = () => setScrolled(window.scrollY > 10);
-        window.addEventListener('scroll', fn, { passive: true });
-        return () => window.removeEventListener('scroll', fn);
-    }, []);
-
     const filtered = useMemo(() => products.filter(p => {
         const cat = activeCategory === 'All' || p.category === activeCategory;
         const src = `${p.name} ${p.description || ''} ${p.category || ''}`.toLowerCase();
         return cat && (!searchTerm.trim() || src.includes(searchTerm.toLowerCase()));
     }), [activeCategory, products, searchTerm]);
 
-
-    const footerCats = useMemo(() => categories.filter(c => c !== 'All').slice(0, 6), [categories]);
-    const totalQty = cartItems.reduce((a, i) => a + i.qty, 0);
-    const getQty = id => cartItems.find(i => i._id === id)?.qty || 0;
-    const getImgs = p => { const a = (p.images || []).filter(Boolean); return a.length ? a : p.image ? [p.image] : []; };
-    const setImg = (id, i) => setImgIdx(prev => ({ ...prev, [id]: i }));
-
-    const handleAdd = (product) => {
-        addToCart(product);
-        setToast(`${product.name} added!`);
-        setTimeout(() => setToast(''), 2000);
+    const backendUrl = API.defaults.baseURL.replace('/api', '');
+    const getImageUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('/uploads')) return `${backendUrl}${url}`;
+        return url;
     };
 
-    const goProfile = () => navigate(!user ? '/login' : user.role === 'admin' ? '/dashboard' : '/profile');
+    const getQty = id => cartItems.find(i => i._id === id)?.qty || 0;
+    const getImgs = p => {
+        const a = (p.images || []).filter(Boolean).map(getImageUrl);
+        return a.length ? a : (p.image ? [getImageUrl(p.image)] : []);
+    };
+
+    const openQuickAdd = (p) => {
+        setQuickAddProduct(p);
+        setSelectedVariant(p.weights?.[0] || null);
+        setModalQty(1);
+        setModalImageIdx(0);
+    };
+
     const scrollMenu = () => document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth' });
     const curBanner = BANNERS[bannerIdx] || BANNERS[0];
 
@@ -107,48 +132,21 @@ export default function Home() {
         <>
             {toast && <div className="toast">✓ {toast}</div>}
 
-            {/* NAV */}
-            <header className={`nav${scrolled ? ' scrolled' : ''}`}>
-                {announcements[0] && !scrolled && <div className="announce">{announcements[0].text}</div>}
-                <div className="nav-bar">
-                    <button className="nav-logo" onClick={() => navigate('/')}>True<span>Eats</span></button>
-                    <nav className="nav-links">
-                        <button onClick={() => navigate('/')}>Home</button>
-                        <button onClick={() => navigate('/our-story')}>Our Story</button>
-                        <button onClick={scrollMenu}>Menu</button>
-                        <button onClick={() => navigate('/contact')}>Contact</button>
-                        {user && <button onClick={() => navigate('/orders')}>My Orders</button>}
-                    </nav>
-                    <div className="nav-actions">
-                        <div className="search-box">
-                            <Search size={15} color="#66756d" />
-                            <input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="Search menu…" />
-                        </div>
-                        <button className="btn btn-ghost" onClick={goProfile}>
-                            <UserRound size={16} />{user ? (user.role === 'admin' ? 'Dashboard' : 'Profile') : 'Login'}
-                        </button>
-                        {user && <button className="btn btn-ghost" onClick={() => { logout(); navigate('/'); }}>Logout</button>}
-                        <button className="btn btn-primary" onClick={() => navigate('/cart')}>
-                            <ShoppingCart size={16} />{totalQty > 0 ? `Cart (${totalQty})` : 'Cart'}
-                        </button>
-                        <button className="hamburger" onClick={() => setMobileOpen(o => !o)}>
-                            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-                        </button>
-                    </div>
-                </div>
-                {mobileOpen && (
-                    <div className="mobile-menu">
-                        {[['/', 'Home'], ['/our-story', 'Our Story'], ['/contact', 'Contact'], ['/orders', 'My Orders']].map(([path, label]) => (
-                            <button key={path} onClick={() => { navigate(path); setMobileOpen(false); }}>{label}</button>
-                        ))}
-                        {user && <button onClick={() => { logout(); navigate('/'); setMobileOpen(false); }}>Logout</button>}
-                    </div>
-                )}
-            </header>
+
 
             {/* BANNER */}
             <section className="banner">
-                <div className="banner-img" style={{ backgroundImage: `url(${curBanner.image})` }} />
+                {BANNERS.map((b, i) => (
+                    <div
+                        key={i}
+                        className="banner-img"
+                        style={{
+                            backgroundImage: `url(${b.image})`,
+                            opacity: i === bannerIdx ? 1 : 0,
+                            zIndex: i === bannerIdx ? 1 : 0
+                        }}
+                    />
+                ))}
                 <div className="banner-overlay" />
                 {BANNERS.length > 1 && (
                     <>
@@ -214,26 +212,27 @@ export default function Home() {
                             const reviewCount = p.reviewCount || p.numReviews || 0;
                             const stars = rating ? '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating)) : null;
                             const origPrice = p.originalPrice || p.comparePrice || null;
-                            const discount = origPrice && origPrice > p.price
-                                ? Math.round((1 - p.price / origPrice) * 100)
+                            const basePrice = p.weights?.[0]?.price || p.price || 0;
+                            const discount = origPrice && origPrice > basePrice
+                                ? Math.round((1 - basePrice / origPrice) * 100)
                                 : null;
                             return (
                                 <div key={p._id} className="vcard">
                                     {/* Image with hover-swap + badge + quick-add */}
                                     <div className="vcard-img-wrap">
                                         {imgs[0]
-                                            ? <img src={imgs[0]} alt={p.name} className="vcard-img" onClick={() => navigate(`/product/${p._id}`)} />
+                                            ? <img src={imgs[0]} alt={p.name} className="vcard-img" onClick={() => navigate(`/product/${p.slug || p._id}`)} />
                                             : <div className="vcard-img img-placeholder">📦</div>
                                         }
-                                        {imgs[1] && <img src={imgs[1]} alt={p.name} className="vcard-img-hover" onClick={() => navigate(`/product/${p._id}`)} />}
+                                        {imgs[1] && <img src={imgs[1]} alt={p.name} className="vcard-img-hover" onClick={() => navigate(`/product/${p.slug || p._id}`)} />}
                                         {p.category && <span className="vcard-badge">{p.category}</span>}
                                         {qty === 0 && (
-                                            <button className="vcard-quick" onClick={() => handleAdd(p)}>+ Quick Add</button>
+                                            <button className="vcard-quick" onClick={() => openQuickAdd(p)}>Choose Options</button>
                                         )}
                                     </div>
                                     {/* Info */}
                                     <div className="vcard-body">
-                                        <button className="vcard-name" onClick={() => navigate(`/product/${p._id}`)}>{p.name}</button>
+                                        <button className="vcard-name" onClick={() => navigate(`/product/${p.slug || p._id}`)}>{p.name}</button>
                                         {stars && (
                                             <div className="vcard-rating">
                                                 <span className="vcard-stars">{stars}</span>
@@ -241,21 +240,13 @@ export default function Home() {
                                             </div>
                                         )}
                                         <div className="vcard-price-row">
-                                            <span className="vcard-price">{fmt(p.price)}</span>
-                                            {origPrice && origPrice > p.price && (
+                                            <span className="vcard-price">{fmt(basePrice)}</span>
+                                            {origPrice && origPrice > basePrice && (
                                                 <span className="vcard-price-orig">{fmt(origPrice)}</span>
                                             )}
                                             {discount && <span className="vcard-price-badge">{discount}% off</span>}
                                         </div>
-                                        {qty > 0 ? (
-                                            <div className="vcard-qty">
-                                                <button onClick={() => removeFromCart(p)}>−</button>
-                                                <span>{qty}</span>
-                                                <button onClick={() => addToCart(p)}>+</button>
-                                            </div>
-                                        ) : (
-                                            <button className="vcard-add" onClick={() => handleAdd(p)}>Add to Cart</button>
-                                        )}
+                                        <button className="vcard-add" onClick={() => openQuickAdd(p)}>Choose Options</button>
                                     </div>
                                 </div>
                             );
@@ -277,51 +268,89 @@ export default function Home() {
                             Read our story <ArrowRight size={16} />
                         </button>
                     </div>
-                    <img src={heroImage} alt="True Eats products" className="story-img" />
+                    <img src={logo} alt="True Eats products" className="story-img" />
                 </div>
             </section>
 
-            {/* FOOTER */}
-            <footer className="footer">
-                <div className="footer-inner">
-                    <div>
-                        <div className="nav-logo" style={{ fontSize: '28px', marginBottom: '14px', cursor: 'default' }}>True<span>Eats</span></div>
-                        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '14px', lineHeight: 1.8, maxWidth: '220px' }}>
-                            Fresh meals, healthy snacks, and better food experiences.
-                        </p>
-                        <div className="social-row">
-                            {[Camera, MessagesSquare, Play].map((Icon, i) => <div key={i} className="social-btn"><Icon size={17} /></div>)}
-                        </div>
-                    </div>
-                    <div>
-                        <div className="footer-heading">Quick Links</div>
-                        <div className="footer-links">
-                            <button onClick={() => navigate('/')}>Home</button>
-                            {footerCats.map(c => <button key={c} onClick={() => { setActiveCategory(c); scrollMenu(); }}>{c}</button>)}
-                            <button onClick={() => navigate('/contact')}>Contact</button>
-                        </div>
-                    </div>
-                    <div>
-                        <div className="footer-heading">Support</div>
-                        <div className="footer-links">
-                            <button onClick={() => navigate('/support')}>Support</button>
-                            <button onClick={() => navigate('/contact')}>Shipping Policy</button>
-                            <button onClick={() => navigate('/contact')}>Refund Policy</button>
-                            <button onClick={() => navigate('/contact')}>Privacy Policy</button>
-                        </div>
-                    </div>
-                    <div>
-                        <div className="footer-heading">Contact</div>
-                        <div style={{ display: 'grid', gap: '12px', color: 'rgba(255,255,255,0.6)', fontSize: '14px' }}>
-                            <div style={{ display: 'flex', gap: '10px' }}><Phone size={15} style={{ marginTop: 2, flexShrink: 0 }} /><span>+91 81796 06489</span></div>
-                            <div style={{ display: 'flex', gap: '10px' }}><MapPin size={15} style={{ marginTop: 2, flexShrink: 0 }} /><span>True Eats, Your City</span></div>
+            {/* QUICK ADD MODAL */}
+            {quickAddProduct && (
+                <div className="qa-overlay" onClick={() => setQuickAddProduct(null)}>
+                    <div className="qa-modal" onClick={e => e.stopPropagation()}>
+                        <button className="qa-close" onClick={() => setQuickAddProduct(null)}><X size={24} /></button>
+                        <div className="qa-content">
+                            {/* Left: Gallery */}
+                            <div className="qa-gallery">
+                                <img src={getImgs(quickAddProduct)[modalImageIdx] || '/placeholder.png'} alt={quickAddProduct.name} className="qa-main-img" />
+                                {getImgs(quickAddProduct).length > 1 && (
+                                    <div className="qa-thumbnails">
+                                        {getImgs(quickAddProduct).map((img, i) => (
+                                            <img key={i} src={img} className={i === modalImageIdx ? 'active' : ''} onClick={() => setModalImageIdx(i)} alt="thumbnail" />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Right: Details */}
+                            <div className="qa-details">
+                                <h2 className="qa-title">{quickAddProduct.name}</h2>
+                                {quickAddProduct.description && (
+                                    <p className="qa-desc">{quickAddProduct.description}</p>
+                                )}
+                                <div className="qa-price">
+                                    {fmt(selectedVariant ? selectedVariant.price : quickAddProduct.price)}
+                                    {selectedVariant?.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
+                                        <span className="qa-price-orig">{fmt(selectedVariant.originalPrice)}</span>
+                                    )}
+                                </div>
+
+                                {quickAddProduct.weights && quickAddProduct.weights.length > 0 && (
+                                    <div className="qa-variants">
+                                        <label>Weight / Size</label>
+                                        <div className="qa-pills">
+                                            {quickAddProduct.weights.map(w => (
+                                                <button
+                                                    key={w.weight}
+                                                    className={`qa-pill ${selectedVariant?.weight === w.weight ? 'active' : ''}`}
+                                                    onClick={() => setSelectedVariant(w)}
+                                                >
+                                                    {w.weight}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="qa-qty-row">
+                                    <label>Quantity</label>
+                                    <div className="qa-qty-ctrl">
+                                        <button onClick={() => setModalQty(Math.max(1, modalQty - 1))}><Minus size={16} /></button>
+                                        <span>{modalQty}</span>
+                                        <button onClick={() => setModalQty(modalQty + 1)}><Plus size={16} /></button>
+                                    </div>
+                                </div>
+
+                                <div className="qa-actions">
+                                    <button className="qa-add-btn" onClick={() => {
+                                        addToCart({ ...quickAddProduct, weight: selectedVariant?.weight, price: selectedVariant?.price || quickAddProduct.price, originalPrice: selectedVariant?.originalPrice || quickAddProduct.originalPrice }, modalQty);
+                                        setToast(`${modalQty}x ${quickAddProduct.name} added!`);
+                                        setTimeout(() => setToast(''), 2000);
+                                        setQuickAddProduct(null);
+                                    }}>Add to Cart</button>
+
+                                    <button className="qa-buy-btn" onClick={() => {
+                                        addToCart({ ...quickAddProduct, weight: selectedVariant?.weight, price: selectedVariant?.price || quickAddProduct.price, originalPrice: selectedVariant?.originalPrice || quickAddProduct.originalPrice }, modalQty);
+                                        navigate('/checkout');
+                                    }}>Buy Now</button>
+                                </div>
+
+                                <button className="qa-view-full" onClick={() => navigate(`/product/${quickAddProduct.slug || quickAddProduct._id}`)}>
+                                    View full details <ArrowRight size={16} />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div className="footer-bottom">
-                    <span>© {new Date().getFullYear()} True Eats. All rights reserved.</span>
-                </div>
-            </footer>
+            )}
         </>
     );
 }

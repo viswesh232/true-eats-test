@@ -10,13 +10,7 @@ const OurStory = () => {
     return (
         <div style={{ minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: '#fafafa' }}>
 
-            {/* Header */}
-            <div style={{ backgroundColor: c.forest, padding: '20px 60px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <button onClick={() => navigate('/')} style={{ border: 'none', background: 'rgba(255,255,255,0.15)', borderRadius: '10px', padding: '8px', cursor: 'pointer', color: '#fff', display: 'flex' }}>
-                    <ArrowLeft size={18} />
-                </button>
-                <span style={{ fontWeight: '900', fontSize: '20px', color: '#fff' }}>TRUE EATS</span>
-            </div>
+            
 
             {/* Hero */}
             <div style={{ backgroundColor: c.peach, padding: '80px 60px', textAlign: 'center' }}>

@@ -1,0 +1,150 @@
+.product-page-container {
+    background-color: var(--bg, #fafafa);
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    padding-bottom: 60px;
+}
+
+.upsell-container {
+    background: #e0f7fa;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    border: 1px solid #b2ebf2;
+}
+
+.upsell-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #00796b;
+    margin-bottom: 12px;
+}
+
+.progress-bar {
+    background-color: #E2E4E3;
+    display: flex;
+    height: 10px;
+    width: 100%;
+    border-radius: 10px;
+    padding: 2px;
+    position: relative;
+    align-items: center;
+}
+
+.progress-bar-done {
+    background: linear-gradient(to right, #0546e0, #5083fb);
+    border-radius: 10px;
+    height: 100%;
+    transition: width 1s ease;
+}
+
+/* Variant Pills */
+.variant-fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.variant-legend {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4a2c2a;
+    margin-bottom: 10px;
+}
+
+.pill-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.variant-pill {
+    cursor: pointer;
+    border: 1px solid #cbd5e1;
+    border-radius: 40px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    transition: all 0.2s ease;
+    user-select: none;
+    background: transparent;
+}
+
+.variant-pill.active {
+    background-color: #1a4331;
+    color: #fff;
+    border-color: #1a4331;
+}
+
+.variant-pill:hover:not(.active) {
+    border-color: #1a4331;
+    color: #1a4331;
+}
+
+/* Badges Row */
+.badges-row {
+    display: flex;
+    gap: 12px;
+    margin: 24px 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.badges-row img {
+    height: 45px;
+    object-fit: contain;
+    zoom: 100%;
+}
+
+/* Accordion */
+.accordion {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.accordion:first-of-type {
+    border-top: 1px solid #e2e8f0;
+}
+
+.accordion-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #4a2c2a;
+    font-size: 16px;
+}
+
+.accordion-header:hover {
+    color: #1a4331;
+}
+
+.accordion-body {
+    padding-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #475569;
+}
+
+/* New Arrivals */
+.new-arrivals {
+    margin-top: 60px;
+    padding-top: 40px;
+}
+
+.new-arrivals h2 {
+    font-size: 28px;
+    font-weight: 900;
+    color: #4a2c2a;
+    margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+    .product-layout {
+        grid-template-columns: 1fr !important;
+    }
+}

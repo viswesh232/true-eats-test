@@ -11,6 +11,7 @@ const getPrimaryImage = (product) => {
 
 const normalizeCartItem = (product) => ({
     ...product,
+    cartId: product.weight ? `${product._id}-${product.weight}` : product._id,
     image: getPrimaryImage(product),
     images: Array.isArray(product.images)
         ? product.images
@@ -31,23 +32,29 @@ export const CartProvider = ({ children }) => {
         localStorage.setItem('trueEatsCart', JSON.stringify(cartItems));
     }, [cartItems]);
 
-    const addToCart = (product) => {
+    const addToCart = (product, qtyToAdd = 1) => {
         const normalizedProduct = normalizeCartItem(product);
-        const exist = cartItems.find((x) => x._id === product._id);
-        if (exist) {
-            setCartItems(cartItems.map((x) => x._id === product._id ? { ...exist, qty: exist.qty + 1 } : x));
-        } else {
-            setCartItems([...cartItems, { ...normalizedProduct, qty: 1 }]);
-        }
+        setCartItems(prev => {
+            const exist = prev.find((x) => x.cartId === normalizedProduct.cartId);
+            if (exist) {
+                return prev.map((x) => x.cartId === normalizedProduct.cartId ? { ...exist, qty: exist.qty + qtyToAdd } : x);
+            } else {
+                return [...prev, { ...normalizedProduct, qty: qtyToAdd }];
+            }
+        });
     };
 
     const removeFromCart = (product) => {
-        const exist = cartItems.find((x) => x._id === product._id);
-        if (exist.qty === 1) {
-            setCartItems(cartItems.filter((x) => x._id !== product._id));
-        } else {
-            setCartItems(cartItems.map((x) => x._id === product._id ? { ...exist, qty: exist.qty - 1 } : x));
-        }
+        const normalizedProduct = normalizeCartItem(product);
+        setCartItems(prev => {
+            const exist = prev.find((x) => x.cartId === normalizedProduct.cartId);
+            if (!exist) return prev;
+            if (exist.qty === 1) {
+                return prev.filter((x) => x.cartId !== normalizedProduct.cartId);
+            } else {
+                return prev.map((x) => x.cartId === normalizedProduct.cartId ? { ...exist, qty: exist.qty - 1 } : x);
+            }
+        });
     };
 
     const clearCart = () => setCartItems([]);

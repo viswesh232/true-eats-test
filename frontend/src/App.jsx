@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from './context/AuthContext';
 import ChatBot from './components/ChatBot';
@@ -33,6 +33,9 @@ import SystemSettings  from './pages/AdminSettings';
 import PaymentsPage    from './pages/PaymentsPage';
 import ReviewsAdmin    from './pages/ReviewsAdmin';
 import SupportAdmin    from './pages/SupportAdmin';
+import PaymentDetail   from './pages/PaymentDetail';
+
+import CustomerLayout from './components/CustomerLayout';
 
 const AdminRoute = ({ children }) => {
     const { user } = useContext(AuthContext);
@@ -51,24 +54,29 @@ function App() {
     return (
         <Router>
             <Routes>
-                {/* Public */}
-                <Route path="/"           element={<Home />} />
+                {/* Public & Customer Routes wrapped in Layout */}
+                <Route element={<CustomerLayout><Outlet /></CustomerLayout>}>
+                    {/* Public */}
+                    <Route path="/"           element={<Home />} />
+                    <Route path="/product/:id" element={<ProductPage />} />
+                    <Route path="/our-story"  element={<OurStory />} />
+                    <Route path="/contact"    element={<ContactUs />} />
+                    <Route path="/verify/:token" element={<VerifyEmail />} />
+                    <Route path="/profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
+
+                    {/* Customer — protected */}
+                    <Route path="/cart"            element={<Cart />} />
+                    <Route path="/checkout"        element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+                    <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
+                    <Route path="/orders"          element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+                    <Route path="/support"         element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+                </Route>
+
+                {/* Auth routes without layout (optional, but let's keep them out for cleaner look or put them in layout) */}
                 <Route path="/login"      element={<Login />} />
                 <Route path="/signup"     element={<Signup />} />
-                <Route path="/product/:id" element={<ProductPage />} />
-                <Route path="/our-story"  element={<OurStory />} />
-                <Route path="/contact"    element={<ContactUs />} />
-                <Route path="/verify/:token" element={<VerifyEmail />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
-                <Route path="/profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
-
-                {/* Customer — protected */}
-                <Route path="/cart"            element={<Cart />} />
-                <Route path="/checkout"        element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-                <Route path="/payment-success" element={<ProtectedRoute><PaymentSuccess /></ProtectedRoute>} />
-                <Route path="/orders"          element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-                <Route path="/support"         element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
 
                 {/* Admin */}
                 <Route path="/dashboard"             element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -83,6 +91,7 @@ function App() {
                 <Route path="/admin/order/view/:id"  element={<AdminRoute><OrderDetail /></AdminRoute>} />
                 <Route path="/admin/settings"        element={<AdminRoute><SystemSettings /></AdminRoute>} />
                 <Route path="/admin/payments"        element={<AdminRoute><PaymentsPage /></AdminRoute>} />
+                <Route path="/admin/payment/:id"     element={<AdminRoute><PaymentDetail /></AdminRoute>} />
                 <Route path="/admin/reviews"         element={<AdminRoute><ReviewsAdmin /></AdminRoute>} />
                 <Route path="/admin/support"         element={<AdminRoute><SupportAdmin /></AdminRoute>} />
 
