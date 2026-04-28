@@ -47,7 +47,7 @@ const CustomerSearch = () => {
     return (
         <div style={{ padding: '40px', backgroundColor: '#f4f7f6', minHeight: '100vh', fontFamily: 'sans-serif' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
-                <ArrowLeft onClick={() => navigate('/admin')} style={{ cursor: 'pointer' }} />
+                <ArrowLeft onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }} />
                 <h1 style={{ margin: 0, color: colors.forest, fontWeight: 900 }}>Customer Directory 👥</h1>
             </div>
 

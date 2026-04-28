@@ -168,7 +168,7 @@ const LiveOrders = () => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <button onClick={() => navigate('/admin/dashboard')} style={{ border: `1px solid ${c.border}`, background: c.white, borderRadius: '12px', padding: '10px', cursor: 'pointer', display: 'flex', transition: 'all 0.2s' }}>
+                    <button onClick={() => navigate('/dashboard')} style={{ border: `1px solid ${c.border}`, background: c.white, borderRadius: '12px', padding: '10px', cursor: 'pointer', display: 'flex', transition: 'all 0.2s' }}>
                         <ArrowLeft size={20} color={c.forest} />
                     </button>
                     <div>
