@@ -1,0 +1,68 @@
+/* ReachOut Page Styles */
+
+.reach-out-container {
+    min-height: 100vh;
+    background-color: #fafafa;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Responsive Layout */
+@media (max-width: 1200px) {
+    .reach-out-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .reach-out-list {
+        max-height: none !important;
+    }
+
+    .reach-out-detail {
+        max-height: none !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .reach-out-container {
+        padding: 12px !important;
+    }
+
+    .reach-out-header {
+        font-size: 18px !important;
+    }
+
+    .reach-out-list-item {
+        padding: 10px !important;
+    }
+
+    .reach-out-detail {
+        padding: 16px !important;
+    }
+
+    .reach-out-detail textarea {
+        min-height: 100px !important;
+    }
+}
+
+/* Scrollbar styling */
+.reach-out-list::-webkit-scrollbar,
+.reach-out-detail::-webkit-scrollbar {
+    width: 6px;
+}
+
+.reach-out-list::-webkit-scrollbar-track,
+.reach-out-detail::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.reach-out-list::-webkit-scrollbar-thumb,
+.reach-out-detail::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.reach-out-list::-webkit-scrollbar-thumb:hover,
+.reach-out-detail::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

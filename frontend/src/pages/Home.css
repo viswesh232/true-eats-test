@@ -217,12 +217,13 @@ body {
   cursor: pointer;
 }
 
-/* ── Banner (rectangular) ── */
+/* ── Banner ── */
 .banner {
   position: relative;
-  height: 500px;
+  width: 100%;
+  height: 480px;
   overflow: hidden;
-  margin-top: 0;
+  display: block;
 }
 
 .banner-img {
@@ -230,64 +231,67 @@ body {
   inset: 0;
   background-size: cover;
   background-position: center;
-  transition: opacity 0.8s ease;
+  transition: opacity 0.7s ease;
 }
 
-.banner-overlay {
+/* slim dark overlay so button is always readable */
+.banner::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(13, 43, 31, 0.82) 0%, rgba(13, 43, 31, 0.45) 60%, rgba(13, 43, 31, 0.1) 100%);
+  background: rgba(0, 0, 0, 0.28);
+  z-index: 1;
+  pointer-events: none;
 }
 
-.banner-content {
-  position: relative;
+/* bottom-left wrapper for button + dots */
+.banner-cta-wrap {
+  position: absolute;
+  bottom: 32px;
+  left: 32px;
   z-index: 2;
-  height: 100%;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 48px 72px;
-  max-width: 720px;
+  align-items: center;
+  gap: 16px;
 }
 
-.banner-headline {
-  font-size: clamp(36px, 5vw, 64px);
-  font-weight: 900;
-  line-height: 1.0;
-  letter-spacing: -0.04em;
-  color: #fff;
-  white-space: pre-line;
-  margin-bottom: 18px;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+/* Shop Now button */
+.banner-shop-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #a5c11f;
+  color: #1a3a2a;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.18s, transform 0.15s;
+  white-space: nowrap;
 }
 
-.banner-sub {
-  font-size: 17px;
-  color: rgba(255, 255, 255, 0.82);
-  line-height: 1.8;
-  max-width: 500px;
-  margin-bottom: 32px;
+.banner-shop-btn:hover {
+  background: #bdd932;
+  transform: translateY(-1px);
 }
 
-.banner-ctas {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 28px;
-}
-
+/* dots */
 .banner-dots {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
+/* arrows */
 .banner-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 3;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1.5px solid rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.15);
@@ -303,66 +307,72 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.banner-arrow-left {
-  left: 20px;
-}
+.banner-arrow-left  { left: 16px; }
+.banner-arrow-right { right: 16px; }
 
-.banner-arrow-right {
-  right: 20px;
-}
-
-.banner-stats {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  display: flex;
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.hero-stat {
-  flex: 1;
-  text-align: center;
-  padding: 16px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.hero-stat:last-child {
-  border-right: none;
-}
-
-.hero-stat-num {
-  display: block;
-  font-size: 22px;
-  font-weight: 900;
-  color: #a5c11f;
-}
-
-.hero-stat-label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.65);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
+/* hero dots */
 .hero-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   border: none;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   transition: all 0.25s;
   padding: 0;
 }
 
 .hero-dot.active {
-  width: 28px;
+  width: 22px;
   background: #a5c11f;
+}
+
+/* ── Mobile banner ── */
+@media (max-width: 768px) {
+  .banner { height: 320px; }
+  .banner-cta-wrap { bottom: 20px; left: 20px; }
+  .banner-shop-btn { padding: 8px 16px; font-size: 13px; }
+  .banner-arrow { width: 32px; height: 32px; }
+  .banner-arrow-left  { left: 10px; }
+  .banner-arrow-right { right: 10px; }
+}
+
+@media (max-width: 480px) {
+  .banner { height: 240px; }
+  .banner-cta-wrap { bottom: 14px; left: 14px; gap: 10px; }
+  .banner-shop-btn { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
+  .banner-arrow { width: 28px; height: 28px; }
+}
+
+/* ── Stats bar (below banner) ── */
+.banner-stats {
+  display: flex;
+  background: #fcd5ce;
+  border-top: 3px solid #f9bbb0;
+}
+
+.hero-stat {
+  flex: 1;
+  text-align: center;
+  padding: 14px 8px;
+  border-right: 1px solid rgba(74, 44, 42, 0.12);
+}
+
+.hero-stat:last-child { border-right: none; }
+
+.hero-stat-num {
+  display: block;
+  font-size: 20px;
+  font-weight: 900;
+  color: #1a4331;
+}
+
+.hero-stat-label {
+  font-size: 10px;
+  color: #6b4c43;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* ── Section ── */
@@ -1194,46 +1204,10 @@ body {
     padding: 0 16px;
   }
 
-  .banner-stats {
-    position: static;
-  }
+
 }
 
-@media (max-width: 480px) {
-  .banner {
-    height: 320px;
-  }
 
-  .banner-headline {
-    font-size: 28px;
-  }
-
-  .banner-sub {
-    font-size: 14px;
-  }
-
-  .cta-primary,
-  .cta-ghost {
-    padding: 12px 18px;
-    font-size: 14px;
-  }
-
-  .footer-inner {
-    grid-template-columns: 1fr;
-  }
-
-  .card-img-wrap {
-    height: 180px;
-  }
-
-  .nav-bar {
-    height: 58px;
-  }
-
-  .banner {
-    margin-top: 58px;
-  }
-}
 
 /* ── Quick Add Modal ── */
 .qa-overlay {
@@ -1556,5 +1530,27 @@ body {
   .qa-overlay {
     align-items: flex-end;
     padding: 10px;
+  }
+}
+
+
+
+
+/* ── Support Page Mobile ── */
+@media (max-width: 768px) {
+  .support-container {
+    flex-direction: column !important;
+    height: calc(100vh - 120px) !important;
+  }
+
+  .support-sidebar {
+    width: 100% !important;
+    height: 35% !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  .support-main {
+    height: 65% !important;
   }
 }

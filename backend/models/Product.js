@@ -8,6 +8,7 @@ const productSchema = new mongoose.Schema({
     category:     { type: String, required: true },
     images:       { type: [String], default: [] },  // array of URLs or local paths
     isAvailable:  { type: Boolean, default: true },
+    isHidden:     { type: Boolean, default: false },
     ingredients:  { type: String, default: '' },
     shelfLife:    { type: String, default: '' },
     instructions: { type: String, default: '' },

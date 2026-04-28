@@ -15,6 +15,11 @@ const OrderDetail = () => {
     const [toast, setToast]             = useState('');
     const navigate = useNavigate();
 
+    const subtotal = order?.orderItems?.reduce((acc, item) => acc + item.price * item.qty, 0) || 0;
+    const couponDiscount = Number(order?.couponDiscount || 0);
+    const userDiscount = Number(order?.userDiscount || 0);
+    const deliveryFee = Number(order?.totalPrice || 0) - subtotal + couponDiscount + userDiscount;
+
     useEffect(() => {
         if (id) API.get(`/orders/${id}`).then(({ data }) => {
             setOrder(data);
@@ -118,14 +123,29 @@ const OrderDetail = () => {
                                     <span style={{ fontWeight: 'bold' }}>₹{item.price * item.qty}</span>
                                 </div>
                             ))}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontWeight: 'bold', color: c.forest, fontSize: '16px' }}>
-                                <span>Total</span><span>₹{order.totalPrice}</span>
-                            </div>
-                            {(order.couponCode || order.couponDiscount > 0) && (
-                                <div style={{ marginTop: '8px', fontSize: '13px', color: '#059669' }}>
-                                    Coupon {order.couponCode} applied — ₹{order.couponDiscount} off
+                            <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', color: '#475569', fontSize: '14px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <span>Subtotal</span><span>₹{subtotal}</span>
                                 </div>
-                            )}
+                                {deliveryFee > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                        <span>Delivery Fee</span><span>₹{deliveryFee}</span>
+                                    </div>
+                                )}
+                                {order.couponDiscount > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#16a34a' }}>
+                                        <span>Coupon Discount</span><span>−₹{order.couponDiscount}</span>
+                                    </div>
+                                )}
+                                {order.userDiscount > 0 && (
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#16a34a' }}>
+                                        <span>First-order Discount</span><span>−₹{order.userDiscount}</span>
+                                    </div>
+                                )}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontWeight: 'bold', color: c.forest, fontSize: '16px' }}>
+                                    <span>Total</span><span>₹{order.totalPrice}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

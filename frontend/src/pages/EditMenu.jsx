@@ -225,8 +225,16 @@ const EditMenu = () => {
         try {
             await API.put(`/products/${p._id}`, { isAvailable: !p.isAvailable });
             setProducts(prev => prev.map(x => x._id === p._id ? { ...x, isAvailable: !x.isAvailable } : x));
-            showToast(`${p.name} marked ${!p.isAvailable ? 'available' : 'unavailable'}`);
+            showToast(`${p.name} marked ${!p.isAvailable ? 'Available' : 'Sold Out'}`);
         } catch { alert('Failed to update availability'); }
+    };
+
+    const handleToggleHidden = async (p) => {
+        try {
+            await API.put(`/products/${p._id}`, { isHidden: !p.isHidden });
+            setProducts(prev => prev.map(x => x._id === p._id ? { ...x, isHidden: !x.isHidden } : x));
+            showToast(`${p.name} is now ${!p.isHidden ? 'hidden from menu' : 'visible on menu'}`);
+        } catch { alert('Failed to update visibility'); }
     };
 
     const startEdit = (p) => {
@@ -344,8 +352,8 @@ const EditMenu = () => {
                             <div key={p._id} style={{
                                 backgroundColor: c.white, borderRadius: '20px', overflow: 'hidden',
                                 boxShadow: '0 8px 24px rgba(0,0,0,0.04)',
-                                border: `2px solid ${!p.isAvailable ? '#fecdd3' : '#eef2f6'}`,
-                                opacity: p.isAvailable ? 1 : 0.8, transition: '0.2s'
+                                border: `2px solid ${p.isHidden ? '#fef3c7' : !p.isAvailable ? '#fecdd3' : '#eef2f6'}`,
+                                opacity: p.isHidden ? 0.7 : p.isAvailable ? 1 : 0.85, transition: '0.2s'
                             }}>
 
                                 {!isEditing && (
@@ -448,16 +456,46 @@ const EditMenu = () => {
                                                 {images.length} image{images.length !== 1 ? 's' : ''}
                                             </div>
 
-                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
-                                                <button onClick={() => handleToggleAvailable(p)} style={{ display: 'flex', alignItems: 'center', gap: '6px', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}>
-                                                    {p.isAvailable
-                                                        ? <><ToggleRight size={32} color="#10b981" /><span style={{ fontSize: '12px', fontWeight: '700', color: '#10b981' }}>Available</span></>
-                                                        : <><ToggleLeft size={32} color="#cbd5e1" /><span style={{ fontSize: '12px', fontWeight: '700', color: '#94a3b8' }}>Unavailable</span></>
-                                                    }
-                                                </button>
-                                                <button onClick={() => startEdit(p)} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#eef2ff', color: c.purple, border: 'none', padding: '7px 13px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
-                                                    <Pencil size={12} /> Edit
-                                                </button>
+                                            {/* Status Tags */}
+                                            <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                                                {p.isHidden && (
+                                                    <span style={{ backgroundColor: '#fef3c7', color: '#92400e', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>🙈 Hidden from Menu</span>
+                                                )}
+                                                {!p.isAvailable && (
+                                                    <span style={{ backgroundColor: '#fecdd3', color: '#9f1239', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>🚫 Sold Out</span>
+                                                )}
+                                                {!p.isHidden && p.isAvailable && (
+                                                    <span style={{ backgroundColor: '#dcfce7', color: '#166534', fontSize: '11px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px' }}>✅ Live</span>
+                                                )}
+                                            </div>
+
+                                            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {/* Sold Out Toggle */}
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <span style={{ fontSize: '12px', fontWeight: '600', color: c.slate }}>Sold Out (shows on menu)</span>
+                                                    <button onClick={() => handleToggleAvailable(p)} style={{ display: 'flex', alignItems: 'center', gap: '5px', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}>
+                                                        {!p.isAvailable
+                                                            ? <><ToggleRight size={28} color="#ef4444" /><span style={{ fontSize: '11px', fontWeight: '700', color: '#ef4444' }}>Sold Out</span></>
+                                                            : <><ToggleLeft size={28} color="#cbd5e1" /><span style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8' }}>In Stock</span></>
+                                                        }
+                                                    </button>
+                                                </div>
+                                                {/* Hide from Menu Toggle */}
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <span style={{ fontSize: '12px', fontWeight: '600', color: c.slate }}>Hide from Menu</span>
+                                                    <button onClick={() => handleToggleHidden(p)} style={{ display: 'flex', alignItems: 'center', gap: '5px', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}>
+                                                        {p.isHidden
+                                                            ? <><ToggleRight size={28} color="#f59e0b" /><span style={{ fontSize: '11px', fontWeight: '700', color: '#f59e0b' }}>Hidden</span></>
+                                                            : <><ToggleLeft size={28} color="#cbd5e1" /><span style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8' }}>Visible</span></>
+                                                        }
+                                                    </button>
+                                                </div>
+                                                {/* Edit Button */}
+                                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                                                    <button onClick={() => startEdit(p)} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#eef2ff', color: c.purple, border: 'none', padding: '7px 13px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
+                                                        <Pencil size={12} /> Edit
+                                                    </button>
+                                                </div>
                                             </div>
                                         </>
                                     )}

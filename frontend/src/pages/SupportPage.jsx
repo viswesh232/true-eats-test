@@ -1,4 +1,4 @@
-﻿import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
@@ -258,8 +258,8 @@ const SupportPage = () => {
                 </div>
             )}
 
-            <div style={{ display: 'flex', flex: 1, height: 'calc(100vh - 68px)', overflow: 'hidden' }}>
-                <div style={{ width: '320px', flexShrink: 0, borderRight: '1px solid #e2e8f0', backgroundColor: c.white, overflowY: 'auto' }}>
+            <div className="support-container" style={{ display: 'flex', flex: 1, height: 'calc(100vh - 68px)', overflow: 'hidden' }}>
+                <div className="support-sidebar" style={{ width: '320px', flexShrink: 0, borderRight: '1px solid #e2e8f0', backgroundColor: c.white, overflowY: 'auto' }}>
                     <div style={{ padding: '16px', borderBottom: '1px solid #f1f5f9' }}>
                         <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: c.chocolate }}>My Tickets</h3>
                     </div>
@@ -300,7 +300,7 @@ const SupportPage = () => {
                 </div>
 
                 {selected ? (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <div className="support-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', backgroundColor: c.white, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                             <div>
                                 <h3 style={{ margin: 0, color: c.forest, fontWeight: '800', fontSize: '15px' }}>{selected.subject}</h3>

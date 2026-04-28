@@ -93,7 +93,7 @@ const Navbar = () => {
                         </div>
 
                         <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                            <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Menu</button>
+                            <button onClick={() => navigate('/?scrollToMenu=true')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Menu</button>
                             <button onClick={() => navigate('/our-story')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Our Story</button>
                             <button onClick={() => navigate('/orders')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>My Orders</button>
                             <button onClick={() => navigate('/support')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Support</button>
@@ -193,9 +193,9 @@ const Navbar = () => {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontSize: '18px', fontWeight: '700', color: c.forest }}>
-                            <div onClick={() => { navigate('/'); setIsMenuOpen(false); }}>Menu</div>
+                            <div onClick={() => { navigate('/?scrollToMenu=true'); setIsMenuOpen(false); }}>Menu</div>
                             <div onClick={() => { navigate('/our-story'); setIsMenuOpen(false); }}>Our Story</div>
-                            <div onClick={() => { navigate('/contact'); setIsMenuOpen(false); }}>Contact</div>
+                            <div onClick={() => { navigate('/orders'); setIsMenuOpen(false); }}>My Orders</div>
                             <div onClick={() => { navigate('/support'); setIsMenuOpen(false); }}>Support</div>
                             {user ? (
                                 <>

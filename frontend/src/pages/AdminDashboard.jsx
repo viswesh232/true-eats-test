@@ -5,7 +5,7 @@ import API from '../api/axios';
 import {
     TrendingUp, ShoppingBag, Users, PackageOpen, 
     LogOut, UtensilsCrossed, CreditCard, Settings, 
-    Bike, Search, FileText, Activity, Package, MessageSquare, ArrowUpRight, Menu, X, Sun, Moon, Lock, MessageCircle, BarChart3
+    Bike, Search, FileText, Activity, Package, MessageSquare, ArrowUpRight, Menu, X, Sun, Moon, Lock, MessageCircle, BarChart3, Mail
 } from 'lucide-react';
 
 const darkTheme = {
@@ -111,6 +111,7 @@ const AdminDashboard = () => {
         { title: 'Bill Generator',    icon: FileText,        path: '/admin/bills',           color: '#64748b', desc: 'Custom receipts' },
         { title: 'Reviews',           icon: MessageSquare,   path: '/admin/reviews',         color: '#06b6d4', desc: 'Customer feedback' },
         { title: 'Support Inbox',     icon: MessageCircle,   path: '/admin/support',         color: '#0ea5e9', desc: 'Support tickets' },
+        { title: 'Reach Out',         icon: Mail,            path: '/admin/reach-out',       color: '#ec4899', desc: 'Contact messages' },
         { title: 'System Settings',   icon: Settings,        path: '/admin/settings',        color: '#f97316', desc: 'Fees & coupons' },
         { title: 'Permissions',       icon: Lock,            path: '/admin/permissions',     color: '#dc2626', desc: 'Role management' },
         { title: 'Revenue Report',    icon: BarChart3,       path: '/admin/revenue',         color: '#d946ef', desc: 'Deep dive metrics' },

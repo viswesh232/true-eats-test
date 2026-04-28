@@ -77,9 +77,9 @@ const MyProfile = () => {
       </button>
 
       <div style={{ backgroundColor: c.white, borderRadius: '24px', padding: '30px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${c.light}`, paddingBottom: '20px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', justifyContent: 'space-between', alignItems: 'center', borderBottom: `2px solid ${c.light}`, paddingBottom: '20px', marginBottom: '20px' }}>
           <h2 style={{ margin: 0, color: c.forest }}>My Profile</h2>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
             {user?.role === 'admin' && (
               <button onClick={() => navigate('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f1f5f9', color: '#1e293b', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                 <LayoutDashboard size={16} /> Admin Dashboard
@@ -88,9 +88,6 @@ const MyProfile = () => {
 
           {!isEditing ? (
             <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => { logout(); navigate('/'); }} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#fee2e2', color: '#dc2626', border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                <LogOut size={16} /> Log Out
-              </button>
               <button onClick={() => setIsEditing(true)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: c.peach, color: c.forest, border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
                 <Edit2 size={16} /> Edit
               </button>
@@ -109,12 +106,12 @@ const MyProfile = () => {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+          <div style={{ flex: '1 1 200px' }}>
             <label style={labelStyle}><User size={16}/> First Name</label>
             <input name="firstName" value={formData.firstName} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: '1 1 200px' }}>
             <label style={labelStyle}><User size={16}/> Last Name</label>
             <input name="lastName" value={formData.lastName} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
@@ -123,12 +120,12 @@ const MyProfile = () => {
         <label style={labelStyle}><Mail size={16}/> Email Address</label>
         <input value={formData.email} disabled style={{ ...inputStyle, backgroundColor: c.light, cursor: 'not-allowed' }} title="Email cannot be changed" />
 
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+          <div style={{ flex: '1 1 200px' }}>
             <label style={labelStyle}><Phone size={16}/> Phone Number</label>
             <input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: '1 1 200px' }}>
             <label style={labelStyle}><Phone size={16}/> Alt Phone (Optional)</label>
             <input name="altPhoneNumber" value={formData.altPhoneNumber} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
@@ -136,26 +133,33 @@ const MyProfile = () => {
 
         <h3 style={{ borderBottom: `1px solid ${c.light}`, paddingBottom: '10px', marginTop: '20px', color: c.forest }}>Delivery Address</h3>
         
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+          <div style={{ flex: '1 1 150px' }}>
             <label style={labelStyle}><MapPin size={16}/> Door No / Flat</label>
             <input name="address.doorNo" value={formData.address.doorNo} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
-          <div style={{ flex: 2 }}>
+          <div style={{ flex: '2 1 250px' }}>
             <label style={labelStyle}><MapPin size={16}/> Colony / Street</label>
             <input name="address.colony" value={formData.address.colony} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '15px' }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+          <div style={{ flex: '1 1 200px' }}>
             <label style={labelStyle}><MapPin size={16}/> City</label>
             <input name="address.city" value={formData.address.city} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: '1 1 200px' }}>
             <label style={labelStyle}><MapPin size={16}/> Pincode</label>
             <input name="address.pincode" value={formData.address.pincode} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
+        </div>
+
+        {/* LOGOUT BUTTON */}
+        <div style={{ marginTop: '30px', borderTop: `1px solid ${c.light}`, paddingTop: '20px', display: 'flex', justifyContent: 'center' }}>
+          <button onClick={() => { logout(); navigate('/'); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#fee2e2', color: '#dc2626', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', width: '100%', justifyContent: 'center' }}>
+            <LogOut size={18} /> Log Out
+          </button>
         </div>
 
       </div>

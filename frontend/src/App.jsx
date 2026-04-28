@@ -34,6 +34,7 @@ import PaymentsPage    from './pages/PaymentsPage';
 import ReviewsAdmin    from './pages/ReviewsAdmin';
 import SupportAdmin    from './pages/SupportAdmin';
 import PaymentDetail   from './pages/PaymentDetail';
+import ReachOut        from './pages/ReachOut';
 
 import CustomerLayout from './components/CustomerLayout';
 
@@ -94,6 +95,7 @@ function App() {
                 <Route path="/admin/payment/:id"     element={<AdminRoute><PaymentDetail /></AdminRoute>} />
                 <Route path="/admin/reviews"         element={<AdminRoute><ReviewsAdmin /></AdminRoute>} />
                 <Route path="/admin/support"         element={<AdminRoute><SupportAdmin /></AdminRoute>} />
+                <Route path="/admin/reach-out"       element={<AdminRoute><ReachOut /></AdminRoute>} />
 
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/" replace />} />

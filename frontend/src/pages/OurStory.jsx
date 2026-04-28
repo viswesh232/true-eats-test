@@ -10,8 +10,6 @@ const OurStory = () => {
     return (
         <div style={{ minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: '#fafafa' }}>
 
-            
-
             {/* Hero */}
             <div style={{ backgroundColor: c.peach, padding: '80px 60px', textAlign: 'center' }}>
                 <p style={{ color: c.forest, fontWeight: '700', fontSize: '13px', letterSpacing: '3px', textTransform: 'uppercase', margin: '0 0 16px' }}>Our Story</p>
@@ -25,7 +23,7 @@ const OurStory = () => {
             <div style={{ maxWidth: '860px', margin: '0 auto', padding: '80px 24px' }}>
 
                 {/* Values */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '72px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '24px', marginBottom: '72px' }}>
                     {[
                         { icon: Leaf, title: 'Real Ingredients', body: 'No preservatives, no shortcuts. Every ingredient is chosen for quality, not shelf life.' },
                         { icon: Heart, title: 'Made with Care', body: 'Every batch is made in small quantities so every item you receive is fresh and full of heart.' },

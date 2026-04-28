@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'https://true-eats-test.onrender.com/api', // Your Backend Address 
+    baseURL: 'http://localhost:5000/api', // Your Backend Address 
 });
 
 // This automatically adds your JWT token to every request if you're logged in

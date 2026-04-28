@@ -147,4 +147,8 @@
     .product-layout {
         grid-template-columns: 1fr !important;
     }
+
+    .reviews-grid {
+        grid-template-columns: 1fr !important;
+    }
 }

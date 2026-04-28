@@ -88,6 +88,9 @@ export default function PaymentDetail() {
     const ps = STATUS[order.paymentStatus] || STATUS.Pending;
     const PsIcon = ps.Icon;
     const subtotal = (order.orderItems || []).reduce((a, i) => a + i.price * i.qty, 0);
+    const couponDiscount = Number(order.couponDiscount || 0);
+    const userDiscount = Number(order.userDiscount || 0);
+    const deliveryFee = Number(order.totalPrice || 0) - subtotal + couponDiscount + userDiscount;
 
     const handlePrint = () => {
         const pStatus = STATUS[order.paymentStatus] || STATUS.Pending;
@@ -154,6 +157,7 @@ export default function PaymentDetail() {
                 <table><thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>
                 ${(order.orderItems || []).map(item => '<tr><td>' + item.name + '</td><td>' + item.qty + '</td><td>' + fmt(item.price) + '</td><td style="font-weight:700">' + fmt(item.price * item.qty) + '</td></tr>').join('')}
                 </tbody></table>
+                ${deliveryFee > 0 ? '<div class="row" style="margin-top:8px"><span class="lbl">Delivery Fee</span><span class="val">' + fmt(deliveryFee) + '</span></div>' : ''}
                 ${(order.couponDiscount > 0) ? '<div class="row" style="margin-top:8px"><span class="lbl">Coupon (' + order.couponCode + ')</span><span class="val" style="color:#16a34a">−' + fmt(order.couponDiscount) + '</span></div>' : ''}
                 ${(order.userDiscount > 0) ? '<div class="row"><span class="lbl">First-order Discount</span><span class="val" style="color:#16a34a">−' + fmt(order.userDiscount) + '</span></div>' : ''}
                 <div class="total-row"><span class="total-label">Total Paid</span><span class="total-value">${fmt(order.totalPrice)}</span></div>
@@ -248,6 +252,12 @@ export default function PaymentDetail() {
                             <span style={{ color:'#64748b' }}>Subtotal</span>
                             <span style={{ fontWeight:600 }}>{fmt(subtotal)}</span>
                         </div>
+                        {deliveryFee > 0 && (
+                            <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'8px', fontSize:'13.5px' }}>
+                                <span style={{ color:'#64748b' }}>Delivery Fee</span>
+                                <span style={{ fontWeight:600 }}>{fmt(deliveryFee)}</span>
+                            </div>
+                        )}
                         {order.couponDiscount > 0 && (
                             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'8px', fontSize:'13.5px' }}>
                                 <span style={{ color:'#64748b' }}>Coupon ({order.couponCode})</span>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
+import API from '../api/axios';
 
 const c = { forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a', white: '#fff' };
 
@@ -13,11 +14,15 @@ const ContactUs = () => {
     const handleSend = async () => {
         if (!form.name || !form.email || !form.message) { alert('Please fill in all required fields'); return; }
         setSending(true);
-        // Simple mailto fallback — replace with API call when backend email is set up
-        setTimeout(() => {
+
+        try {
+            const response = await API.post('/contact', form);
             setSent(true);
-            setSending(false);
-        }, 1000);
+            setForm({ name: '', email: '', subject: '', message: '' });
+        } catch (error) {
+            alert(error.response?.data?.message || 'Failed to send message. Please try again.');
+        }
+        setSending(false);
     };
 
     const inp = { width: '100%', padding: '12px 14px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', backgroundColor: '#f8fafc' };
@@ -40,18 +45,16 @@ const ContactUs = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#fafafa', fontFamily: "'Inter', sans-serif" }}>
 
-            
-
             {/* Hero banner */}
             <div style={{ backgroundColor: c.peach, padding: '60px', textAlign: 'center' }}>
                 <h1 style={{ fontSize: '44px', fontWeight: '900', color: c.chocolate, margin: '0 0 12px' }}>Get in Touch</h1>
                 <p style={{ color: '#6b4c43', fontSize: '17px', margin: 0 }}>We're here to help. Drop us a line anytime.</p>
             </div>
 
-            <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '60px 24px', display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '40px', alignItems: 'start' }}>
+            <div style={{ maxWidth: '1000px', margin: '0 auto', padding: 'clamp(30px, 5vw, 60px) clamp(16px, 4vw, 24px)', display: 'flex', flexWrap: 'wrap', gap: '40px', alignItems: 'start' }}>
 
                 {/* Info column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: '1 1 300px' }}>
                     {[
                         { icon: Mail,  title: 'Email',    val: 'hello@trueeats.in',  sub: 'We reply within 24 hours' },
                         { icon: Phone, title: 'Phone',    val: '+91 98765-43210',    sub: 'Mon–Sat, 10am–6pm' },
@@ -80,9 +83,9 @@ const ContactUs = () => {
                 </div>
 
                 {/* Form */}
-                <div style={{ backgroundColor: c.white, borderRadius: '24px', padding: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+                <div style={{ backgroundColor: c.white, borderRadius: '24px', padding: 'clamp(20px, 4vw, 32px)', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', flex: '1.4 1 350px' }}>
                     <h2 style={{ margin: '0 0 24px', color: c.forest, fontWeight: '900', fontSize: '20px' }}>Send a Message</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '14px' }}>
                         <div>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: '700', color: '#64748b', marginBottom: '5px', textTransform: 'uppercase' }}>Name *</label>
                             <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Your name" style={inp} />

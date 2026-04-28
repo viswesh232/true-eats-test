@@ -66,6 +66,15 @@ export default function Home() {
 
     const { cartItems, addToCart } = useContext(CartContext);
 
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    useEffect(() => {
+        const onResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+    const isMobile = windowWidth <= 480;
+    const isTablet = windowWidth <= 768;
+
     useEffect(() => {
         if (searchParam) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -117,6 +126,7 @@ export default function Home() {
     }, [announcements.length, announcementIdx]);
 
     const filtered = useMemo(() => products.filter(p => {
+        if (p.isHidden) return false;
         const cat = activeCategory === 'All' || p.category === activeCategory;
         const src = `${p.name} ${p.description || ''} ${p.category || ''}`.toLowerCase();
         return cat && (!searchTerm.trim() || src.includes(searchTerm.toLowerCase()));
@@ -156,50 +166,57 @@ export default function Home() {
                 </div>
             )}
 
-            {/* BANNER */}
-            <section className="banner">
-                {BANNERS.map((b, i) => (
-                    <div
-                        key={i}
-                        className="banner-img"
-                        style={{
-                            backgroundImage: `url(${b.image})`,
-                            opacity: i === bannerIdx ? 1 : 0,
-                            zIndex: i === bannerIdx ? 1 : 0
-                        }}
+            {/* PHOTO SLIDER */}
+            <div style={{ display: 'block', width: '100%', fontSize: 0 }}>
+                <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
+
+                    {/* The photo */}
+                    <img
+                        src={BANNERS[bannerIdx].image}
+                        alt="True Eats"
+                        style={{ width: '100%', height: isMobile ? '220px' : isTablet ? '320px' : '480px', objectFit: 'cover', display: 'block', verticalAlign: 'top' }}
                     />
-                ))}
-                <div className="banner-overlay" />
-                {BANNERS.length > 1 && (
-                    <>
-                        <button className="banner-arrow banner-arrow-left" onClick={() => setBannerIdx(i => (i - 1 + BANNERS.length) % BANNERS.length)}><ChevronLeft size={20} /></button>
-                        <button className="banner-arrow banner-arrow-right" onClick={() => setBannerIdx(i => (i + 1) % BANNERS.length)}><ChevronRight size={20} /></button>
-                    </>
-                )}
-                <div className="banner-content">
-                    <h1 className="banner-headline">{curBanner.title}</h1>
-                    <p className="banner-sub">{curBanner.subtitle}</p>
-                    <div className="banner-ctas">
-                        <button className="cta-primary" onClick={scrollMenu}>Shop Now <ArrowRight size={18} /></button>
-                        <button className="cta-ghost" onClick={() => navigate('/our-story')}>Our Story</button>
-                    </div>
+
+                    {/* Prev / Next arrows */}
+                    {BANNERS.length > 1 && (<>
+                        <button onClick={() => setBannerIdx(i => (i - 1 + BANNERS.length) % BANNERS.length)}
+                            style={{ position: 'absolute', top: '50%', left: '12px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)', border: 'none', borderRadius: '50%', width: isMobile ? '28px' : '38px', height: isMobile ? '28px' : '38px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+                            <ChevronLeft size={isMobile ? 14 : 18} />
+                        </button>
+                        <button onClick={() => setBannerIdx(i => (i + 1) % BANNERS.length)}
+                            style={{ position: 'absolute', top: '50%', right: '12px', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)', border: 'none', borderRadius: '50%', width: isMobile ? '28px' : '38px', height: isMobile ? '28px' : '38px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}>
+                            <ChevronRight size={isMobile ? 14 : 18} />
+                        </button>
+                    </>)}
+
+                    {/* Shop Now button — bottom left */}
+                    <button onClick={scrollMenu}
+                        style={{ position: 'absolute', bottom: isMobile ? '10px' : '18px', left: isMobile ? '12px' : '24px', display: 'flex', alignItems: 'center', gap: '6px', background: '#a5c11f', color: '#1a3a2a', border: 'none', borderRadius: '6px', padding: isMobile ? '6px 12px' : '9px 20px', fontSize: isMobile ? '12px' : '14px', fontWeight: '800', fontFamily: 'Inter, sans-serif', cursor: 'pointer', zIndex: 2 }}>
+                        Shop Now <ArrowRight size={isMobile ? 12 : 15} />
+                    </button>
+
+                    {/* Slide dots — bottom right */}
                     {BANNERS.length > 1 && (
-                        <div className="banner-dots">
+                        <div style={{ position: 'absolute', bottom: isMobile ? '14px' : '22px', right: isMobile ? '12px' : '24px', display: 'flex', gap: '5px', zIndex: 2 }}>
                             {BANNERS.map((_, i) => (
-                                <button key={i} className={`hero-dot${i === bannerIdx ? ' active' : ''}`} onClick={() => setBannerIdx(i)} />
+                                <button key={i} onClick={() => setBannerIdx(i)}
+                                    style={{ width: i === bannerIdx ? '18px' : '7px', height: '7px', borderRadius: '999px', border: 'none', background: i === bannerIdx ? '#a5c11f' : 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 0, transition: 'all 0.25s' }} />
                             ))}
                         </div>
                     )}
                 </div>
-                <div className="banner-stats">
+
+                {/* STATS BAR — directly below, no gap */}
+                <div style={{ display: 'flex', background: '#fcd5ce', borderTop: '3px solid #f9bbb0', fontSize: '14px' }}>
                     {STATS.map(([num, label]) => (
-                        <div key={label} className="hero-stat">
-                            <span className="hero-stat-num">{num}</span>
-                            <span className="hero-stat-label">{label}</span>
+                        <div key={label} style={{ flex: 1, textAlign: 'center', padding: isMobile ? '10px 4px' : '14px 8px', borderRight: '1px solid rgba(74,44,42,0.12)' }}>
+                            <span style={{ display: 'block', fontSize: isMobile ? '16px' : '20px', fontWeight: '900', color: '#1a4331' }}>{num}</span>
+                            <span style={{ fontSize: isMobile ? '9px' : '10px', color: '#6b4c43', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
                         </div>
                     ))}
+                    <div style={{ borderRight: 'none' }} />
                 </div>
-            </section>
+            </div>
 
 
 

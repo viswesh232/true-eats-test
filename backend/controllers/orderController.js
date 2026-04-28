@@ -85,12 +85,13 @@ const calculateOrderPricing = async ({ orderItems, couponCode, userId }) => {
         return { error: 'Invalid order items' };
     }
 
+    const uniqueProductIds = [...new Set(requestedItems.map((item) => item.productId))];
     const products = await Product.find({
-        _id: { $in: requestedItems.map((item) => item.productId) },
+        _id: { $in: uniqueProductIds },
         isAvailable: true,
     }).select('name price images');
 
-    if (products.length !== requestedItems.length) {
+    if (products.length !== uniqueProductIds.length) {
         return { error: 'One or more selected products are unavailable' };
     }
 

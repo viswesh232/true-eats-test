@@ -300,6 +300,19 @@ const ProductPage = () => {
 
             <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
 
+                {/* ── BACK BUTTON ── */}
+                <button
+                    onClick={() => navigate(-1)}
+                    style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '6px',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: c.forest, fontWeight: '700', fontSize: '14px',
+                        marginBottom: '24px', padding: '8px 0'
+                    }}
+                >
+                    <ArrowLeft size={18} /> Back
+                </button>
+
                 {/* ── PRODUCT SECTION ── */}
                 <div className="product-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', marginBottom: '64px' }}>
 
@@ -434,7 +447,7 @@ const ProductPage = () => {
                         Customer Reviews
                     </h2>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'start' }}>
+                    <div className="reviews-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', alignItems: 'start' }}>
 
                         {/* Rating summary + breakdown */}
                         <div>

@@ -47,6 +47,8 @@ const buildBillHtml = (bill) => {
             <hr style="border:none;border-top:1px dashed #000;margin:8px 0;"/>
             <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>Subtotal</span><span>Rs.${bill.subtotal.toFixed(2)}</span></div>
             ${bill.deliveryFee ? `<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>Delivery Fee</span><span>Rs.${bill.deliveryFee.toFixed(2)}</span></div>` : ''}
+            ${bill.couponDiscount > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:#16a34a;"><span>Coupon Discount</span><span>Rs.-${bill.couponDiscount.toFixed(2)}</span></div>` : ''}
+            ${bill.userDiscount > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:#16a34a;"><span>First-order Discount</span><span>Rs.-${bill.userDiscount.toFixed(2)}</span></div>` : ''}
             <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:14px;margin-top:4px;border-top:1px solid #000;padding-top:4px;"><span>TOTAL</span><span>Rs.${bill.total.toFixed(2)}</span></div>
             ${bill.adminNote ? `<hr style="border:none;border-top:1px dashed #000;margin:8px 0;"/><p style="font-size:11px;margin:3px 0;font-style:italic;"><b>Note:</b> ${bill.adminNote}</p>` : ''}
             <div style="text-align:center;border-top:1px dashed #000;margin-top:8px;padding-top:6px;font-size:10px;opacity:.7;">
@@ -133,15 +135,19 @@ const BillPreview = ({ bill, onPrint }) => (
                 <span>Delivery Fee</span><span>₹{bill.deliveryFee.toFixed(2)}</span>
             </div>
         )}
+        {bill.couponDiscount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#16a34a', marginBottom: '4px' }}>
+                <span>Coupon Discount</span><span>−₹{bill.couponDiscount.toFixed(2)}</span>
+            </div>
+        )}
+        {bill.userDiscount > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#16a34a', marginBottom: '4px' }}>
+                <span>First-order Discount</span><span>−₹{bill.userDiscount.toFixed(2)}</span>
+            </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '900', fontSize: '18px', color: colors.forest, marginTop: '10px', borderTop: '2px solid #eee', paddingTop: '10px' }}>
             <span>TOTAL</span><span>₹{bill.total.toFixed(2)}</span>
         </div>
-
-        {bill.adminNote && (
-            <div style={{ marginTop: '14px', padding: '10px 14px', backgroundColor: '#fffbeb', borderRadius: '10px', borderLeft: `3px solid #f59e0b`, fontSize: '13px', color: '#92400e', fontStyle: 'italic' }}>
-                <b>Note:</b> {bill.adminNote}
-            </div>
-        )}
 
         <button onClick={onPrint} style={{
             marginTop: '20px', width: '100%', backgroundColor: colors.forest, color: '#fff',
@@ -203,15 +209,24 @@ const OrderBillMode = () => {
         return true;
     });
 
-    const makeBill = (o) => ({
-        orderId: o.orderId || o._id.slice(-6).toUpperCase(),
-        customerName: `${o.user?.firstName || ''} ${o.user?.lastName || ''}`.trim() || 'Guest',
-        address: o.shippingAddress,
-        items: o.orderItems.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-        subtotal: o.orderItems.reduce((acc, i) => acc + i.price * i.qty, 0),
-        deliveryFee: o.totalPrice - o.orderItems.reduce((acc, i) => acc + i.price * i.qty, 0),
-        total: o.totalPrice,
-    });
+    const makeBill = (o) => {
+        const subtotal = o.orderItems.reduce((acc, i) => acc + i.price * i.qty, 0);
+        const couponDiscount = Number(o.couponDiscount || 0);
+        const userDiscount = Number(o.userDiscount || 0);
+        const deliveryFee = Number(o.totalPrice || 0) - subtotal + couponDiscount + userDiscount;
+
+        return {
+            orderId: o.orderId || o._id.slice(-6).toUpperCase(),
+            customerName: `${o.user?.firstName || ''} ${o.user?.lastName || ''}`.trim() || 'Guest',
+            address: o.shippingAddress,
+            items: o.orderItems.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+            subtotal,
+            deliveryFee,
+            couponDiscount,
+            userDiscount,
+            total: o.totalPrice,
+        };
+    };
 
     const bill = order ? makeBill(order) : null;
 
@@ -566,15 +581,24 @@ const BulkPrintMode = () => {
         }
     };
 
-    const makeBill = (o) => ({
-        orderId: o.orderId || o._id.slice(-6).toUpperCase(),
-        customerName: `${o.user?.firstName || ''} ${o.user?.lastName || ''}`.trim() || 'Guest',
-        address: o.shippingAddress,
-        items: o.orderItems.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
-        subtotal: o.orderItems.reduce((acc, i) => acc + i.price * i.qty, 0),
-        deliveryFee: o.totalPrice - o.orderItems.reduce((acc, i) => acc + i.price * i.qty, 0),
-        total: o.totalPrice,
-    });
+    const makeBill = (o) => {
+        const subtotal = o.orderItems.reduce((acc, i) => acc + i.price * i.qty, 0);
+        const couponDiscount = Number(o.couponDiscount || 0);
+        const userDiscount = Number(o.userDiscount || 0);
+        const deliveryFee = Number(o.totalPrice || 0) - subtotal + couponDiscount + userDiscount;
+
+        return {
+            orderId: o.orderId || o._id.slice(-6).toUpperCase(),
+            customerName: `${o.user?.firstName || ''} ${o.user?.lastName || ''}`.trim() || 'Guest',
+            address: o.shippingAddress,
+            items: o.orderItems.map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+            subtotal,
+            deliveryFee,
+            couponDiscount,
+            userDiscount,
+            total: o.totalPrice,
+        };
+    };
 
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '24px', alignItems: 'start' }}>
