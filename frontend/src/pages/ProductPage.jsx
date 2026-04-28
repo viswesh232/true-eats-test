@@ -561,7 +561,7 @@ const ProductPage = () => {
                                     {r.images && r.images.length > 0 && (
                                         <div style={{ display: 'flex', gap: '8px', marginTop: '12px', overflowX: 'auto' }}>
                                             {r.images.map((imgUrl, i) => (
-                                                <img key={i} src={imgUrl.startsWith('http') ? imgUrl : `http://localhost:5000${imgUrl}`} alt="Review" style={{ height: '72px', width: '72px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                                                <img key={i} src={imgUrl.startsWith('http') ? imgUrl : `https://true-eats-test1.onrender.com${imgUrl}`} alt="Review" style={{ height: '72px', width: '72px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
                                             ))}
                                         </div>
                                     )}
