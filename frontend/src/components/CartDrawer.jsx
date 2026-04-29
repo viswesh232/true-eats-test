@@ -406,9 +406,9 @@ const CartDrawer = ({ isOpen, onClose }) => {
                             <div style={{ width: '28px', height: '18px', backgroundColor: '#fff', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', color: '#000', fontWeight: 800 }}>CC</div>
                         </div>
                     </button>
-                    <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: colors.muted }}>
+                    {/* <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '10px', color: colors.muted }}>
                         Powered by <strong style={{ color: '#555' }}>shopflo</strong>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>
