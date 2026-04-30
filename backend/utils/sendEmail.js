@@ -114,7 +114,7 @@ const sendEmail = async (email, subject, text, html) => {
     try {
         const transporter = createTransporter();
         await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+            from: `"True Eats" <${process.env.EMAIL_USER}>`,
             to: email,
             subject,
             text,
