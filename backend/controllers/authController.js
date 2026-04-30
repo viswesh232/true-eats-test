@@ -38,7 +38,7 @@ exports.registerUser = async (req, res) => {
     if (user) {
       // TODO: Send Email with Nodemailer here
       // The Professional Link: Sends them to a verification route we will build next
-      const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173/api/auth'}/verify/${verificationToken}`;
+      const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify/${verificationToken}`;
 
       // Fallback for plain text clients
       const message = `Please verify your email by clicking here: ${verifyUrl}`;
