@@ -1,8 +1,16 @@
 const nodemailer = require('nodemailer');
 
-const createTransporter = () => nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // use SSL
+    pool: true,   // use pooled connections
+    maxConnections: 5,
+    maxMessages: 100,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
 });
 
 const wrap = (content) => `
@@ -20,7 +28,7 @@ const wrap = (content) => `
 
 const sendVerificationEmail = async (email, verificationUrl) => {
     try {
-        await createTransporter().sendMail({
+        await transporter.sendMail({
             from: `"True Eats" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'Verify Your True Eats Account',
@@ -40,7 +48,7 @@ const sendVerificationEmail = async (email, verificationUrl) => {
 
 const sendOrderUpdateEmail = async (email, { customerName, orderId, message, trackingId, courierName }) => {
     try {
-        await createTransporter().sendMail({
+        await transporter.sendMail({
             from: `"True Eats" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: `Update on your True Eats Order #${orderId}`,
@@ -66,7 +74,7 @@ const sendOrderUpdateEmail = async (email, { customerName, orderId, message, tra
 
 const sendCouponEmail = async (email, { customerName, couponCode, discountText, message }) => {
     try {
-        await createTransporter().sendMail({
+        await transporter.sendMail({
             from: `"True Eats" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: 'A special offer for you from True Eats',
@@ -91,7 +99,7 @@ const sendCouponEmail = async (email, { customerName, couponCode, discountText, 
 
 const sendAdminMessageEmail = async (email, { customerName, subject, message }) => {
     try {
-        await createTransporter().sendMail({
+        await transporter.sendMail({
             from: `"True Eats" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: subject || 'A message from True Eats',
@@ -112,9 +120,8 @@ const sendAdminMessageEmail = async (email, { customerName, subject, message }) 
 
 const sendEmail = async (email, subject, text, html) => {
     try {
-        const transporter = createTransporter();
         await transporter.sendMail({
-            from: `"True Eats" <${process.env.EMAIL_USER}>`,
+            from: process.env.EMAIL_USER,
             to: email,
             subject,
             text,

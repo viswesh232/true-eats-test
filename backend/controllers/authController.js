@@ -38,7 +38,7 @@ exports.registerUser = async (req, res) => {
     if (user) {
       // TODO: Send Email with Nodemailer here
       // The Professional Link: Sends them to a verification route we will build next
-      const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify/${verificationToken}`;
+      const verifyUrl = `${process.env.BASE_URL}/api/auth/verify/${verificationToken}`;
 
       // Fallback for plain text clients
       const message = `Please verify your email by clicking here: ${verifyUrl}`;
@@ -65,8 +65,9 @@ exports.registerUser = async (req, res) => {
       </div>
     `;
 
-      // Make sure to pass the htmlMessage as the 4th argument!
-      await sendEmail(user.email, 'True Eats - Verify Your Email', message, htmlMessage);
+      // Send email without awaiting to prevent blocking the response
+      sendEmail(user.email, 'True Eats - Verify Your Email', message, htmlMessage).catch(err => console.error('Signup email failed:', err));
+
       return res.status(201).json({
         message: 'Signup successful. Please check your email to verify your account.',
       });
@@ -97,8 +98,8 @@ exports.verifyEmail = async (req, res) => {
     user.verificationToken = undefined; // Remove the token so it can't be used again
     await user.save();
 
-    // 3. Redirect to React Login
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    // 3. Redirect to React Login (Frontend)
+    const clientUrl = 'http://localhost:5173'; // Assuming frontend is on 5173
     return res.redirect(`${clientUrl}/login?verified=true`);
 
   } catch (error) {
@@ -209,7 +210,8 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     // Send the email using your existing utility
-    const resetUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
+    const clientUrl = 'http://localhost:5173'; // Assuming frontend is on 5173
+    const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
     const message = `Please click on the following link to reset your password: ${resetUrl}`;
     const htmlMessage = `
       <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">
@@ -237,17 +239,14 @@ exports.forgotPassword = async (req, res) => {
       </div>
     `;
 
-    try {
-      // Pass the htmlMessage as the 4th argument
-      await sendEmail(user.email, 'True Eats - Password Reset', message, htmlMessage);
-      res.json({ message: 'Password reset link sent to your email!' });
-    } catch (error) {
-      // If email sending fails, clear the reset token and expiration
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save();
-      res.status(500).json({ message: 'Failed to send email. Please try again later.' });
-    }
+    // Send email without awaiting to prevent blocking the response
+    sendEmail(user.email, 'True Eats - Password Reset', message, htmlMessage)
+      .catch(async (error) => {
+        console.error('Password reset email failed:', error);
+        // Optional: you might want to log this specifically
+      });
+
+    res.json({ message: 'Password reset link sent to your email!' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

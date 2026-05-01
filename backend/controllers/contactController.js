@@ -21,16 +21,12 @@ exports.createContact = async (req, res) => {
 
         await contact.save();
 
-        // Send confirmation email to user
-        try {
-            await sendEmail(
-                email,
-                'We received your message - True Eats',
-                `Hi ${name},\n\nThank you for reaching out to True Eats! We have received your message and will get back to you within 24 hours.\n\nYour Message:\n${message}\n\nBest regards,\nTrue Eats Team`
-            );
-        } catch (emailErr) {
-            console.error('Failed to send confirmation email:', emailErr);
-        }
+        // Send confirmation email to user without awaiting
+        sendEmail(
+            email,
+            'We received your message - True Eats',
+            `Hi ${name},\n\nThank you for reaching out to True Eats! We have received your message and will get back to you within 24 hours.\n\nYour Message:\n${message}\n\nBest regards,\nTrue Eats Team`
+        ).catch(err => console.error('Failed to send confirmation email:', err));
 
         res.status(201).json({ message: 'Message received! We will reply soon.', contact });
     } catch (error) {
@@ -88,16 +84,12 @@ exports.sendReply = async (req, res) => {
         }
 
         // Send email to customer
-        try {
-            await sendAdminMessageEmail(contact.email, {
-                customerName: contact.name,
-                subject: `Re: ${contact.subject || contact.name} - True Eats`,
-                message: adminReply,
-            });
-        } catch (emailErr) {
-            console.error('Failed to send reply email:', emailErr);
-            return res.status(500).json({ message: 'Failed to send reply email.' });
-        }
+        // Send email to customer without awaiting
+        sendAdminMessageEmail(contact.email, {
+            customerName: contact.name,
+            subject: `Re: ${contact.subject || contact.name} - True Eats`,
+            message: adminReply,
+        }).catch(err => console.error('Failed to send reply email:', err));
 
         // Update contact record
         contact.adminReply = adminReply;
