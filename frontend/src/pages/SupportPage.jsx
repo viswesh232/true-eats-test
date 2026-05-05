@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { ArrowLeft, CheckCircle, ImagePlus, MessageCircle, Plus, Send, X } from 'lucide-react';
+import { getImageUrl } from '../utils/helpers';
 
 const c = { forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a', white: '#fff', slate: '#64748b', light: '#f1f5f9' };
 
@@ -21,13 +22,6 @@ const SUPPORT_TOPICS = [
 ];
 
 const EMPTY_FORM = { topic: 'general', subject: 'Need support', message: '', relatedOrderId: '' };
-
-const getImageUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const base = API.defaults.baseURL?.replace(/\/api$/, '') || '';
-    return `${base}${path}`;
-};
 
 const topicLabel = (topicId) => SUPPORT_TOPICS.find((topic) => topic.id === topicId)?.label || 'General Help';
 
@@ -91,7 +85,7 @@ const SupportPage = () => {
         loadData();
         const interval = setInterval(() => {
             refreshTickets().catch((err) => console.error(err));
-        }, 1000);
+        }, 10000);
 
         return () => {
             isMounted = false;

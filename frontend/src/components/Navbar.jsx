@@ -5,6 +5,8 @@ import { CartContext } from '../context/CartContext';
 import { ShoppingCart, Search, User, Menu, X } from 'lucide-react';
 import API from '../api/axios';
 import CartDrawer from './CartDrawer';
+import { getImageUrl, formatPrice } from '../utils/helpers';
+
 const c = {
     forest: '#1a4331',
     peach: '#fcd5ce',
@@ -13,10 +15,6 @@ const c = {
     bg: '#fafafa',
     slate: '#64748b'
 };
-
-const formatPrice = (amount) => new Intl.NumberFormat('en-IN', {
-    style: 'currency', currency: 'INR', maximumFractionDigits: 0
-}).format(amount || 0);
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -116,7 +114,7 @@ const Navbar = () => {
                             <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '360px', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e2e8f0', zIndex: 200 }}>
                                 {searchResults.map(p => (
                                     <div key={p._id} onMouseDown={() => { navigate(`/product/${p.slug || p._id}`); setIsDropdownOpen(false); setSearchQuery(''); }} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>
-                                        <img src={p.image || (p.images && p.images[0]) || ''} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
+                                        <img src={getImageUrl(p.image || (p.images && p.images[0]) || '')} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
                                         <div>
                                             <div style={{ fontWeight: '700', color: '#111', fontSize: '13px' }}>{p.name}</div>
                                             <div style={{ color: '#64748b', fontSize: '11px' }}>{formatPrice(p.weights?.[0]?.price || p.price)}</div>
@@ -171,7 +169,7 @@ const Navbar = () => {
                         <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: '100%', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 10px 40px rgba(0,0,0,0.1)', overflow: 'hidden', border: '1px solid #e2e8f0', zIndex: 200 }}>
                             {searchResults.map(p => (
                                 <div key={p._id} onMouseDown={() => { navigate(`/product/${p.slug || p._id}`); setIsDropdownOpen(false); setSearchQuery(''); }} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9' }}>
-                                    <img src={p.image || (p.images && p.images[0]) || ''} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
+                                    <img src={getImageUrl(p.image || (p.images && p.images[0]) || '')} alt={p.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
                                     <div>
                                         <div style={{ fontWeight: '700', color: '#111', fontSize: '13px' }}>{p.name}</div>
                                         <div style={{ color: '#64748b', fontSize: '11px' }}>{formatPrice(p.weights?.[0]?.price || p.price)}</div>

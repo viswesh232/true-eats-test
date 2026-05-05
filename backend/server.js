@@ -6,9 +6,10 @@ const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const productRoutes = require('./routes/productRoutes');
-const settingsRoutes = require('./routes/settingRotes');
-const reviewRoutes = require('./routes/ReviewRoutes');
+const settingsRoutes = require('./routes/settingRoutes');
+const reviewRoutes = require('./routes/reviewRoutes');
 const supportRoutes = require('./routes/supportRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 // 1. Load environment variables
 dotenv.config();
 
@@ -29,9 +30,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/settings', settingsRoutes); // New route for settings
+app.use('/api/settings', settingsRoutes); // Fixed typo
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/contact', contactRoutes);
 // 5. BASE ROUTE
 app.get('/', (req, res) => {
     res.send('True Eats API is running...');

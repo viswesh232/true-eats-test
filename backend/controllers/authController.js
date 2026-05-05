@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const sendEmail = require('../utils/sendEmail');
+const { sendEmail, sendVerificationEmail, sendPasswordResetEmail } = require('../utils/sendEmail');
 const generateToken = require('../utils/generateToken');
 
 // @desc    Register a new user
@@ -38,35 +38,12 @@ exports.registerUser = async (req, res) => {
     if (user) {
       // TODO: Send Email with Nodemailer here
       // The Professional Link: Sends them to a verification route we will build next
-      const verifyUrl = `${process.env.BASE_URL}/api/auth/verify/${verificationToken}`;
+      // Point to the frontend verification page
+      const clientUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
 
-      // Fallback for plain text clients
-      const message = `Please verify your email by clicking here: ${verifyUrl}`;
-
-      const htmlMessage = `
-      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">
-        <h2 style="color: #1a4331; margin-bottom: 20px;">Welcome to True Eats!</h2>
-        <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
-          Thank you for signing up. Please verify your email address to get started.
-        </p>
-        
-        <!-- The Main Button -->
-        <a href="${verifyUrl}" style="background-color: #1a4331; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;">
-          Verify My Email
-        </a>
-
-        <!-- The Fallback Link -->
-        <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-          If the button doesn't work, copy and paste this link into your browser:
-        </p>
-        <p style="color: #1a4331; font-size: 13px; word-break: break-all; background-color: #f1f5f9; padding: 12px; border-radius: 8px;">
-          ${verifyUrl}
-        </p>
-      </div>
-    `;
-
-      // Send email without awaiting to prevent blocking the response
-      sendEmail(user.email, 'True Eats - Verify Your Email', message, htmlMessage).catch(err => console.error('Signup email failed:', err));
+      // Send verification email using the specialized utility
+      sendVerificationEmail(user.email, verifyUrl).catch(err => console.error('Signup email failed:', err));
 
       return res.status(201).json({
         message: 'Signup successful. Please check your email to verify your account.',
@@ -87,20 +64,16 @@ exports.verifyEmail = async (req, res) => {
     const user = await User.findOne({ verificationToken: token });
 
     if (!user) {
-      return res.status(400).send(`
-            <h1>Verification Failed</h1>
-            <p>Invalid or expired verification token.</p>
-        `);
+      return res.status(400).json({ message: 'Invalid or expired verification token.' });
     }
 
     // 2. Update the user: Verify them and remove the token
     user.isVerified = true;
-    user.verificationToken = undefined; // Remove the token so it can't be used again
+    user.verificationToken = undefined;
     await user.save();
 
-    // 3. Redirect to React Login (Frontend)
-    const clientUrl = 'http://localhost:5173'; // Assuming frontend is on 5173
-    return res.redirect(`${clientUrl}/login?verified=true`);
+    // 3. Return success JSON
+    return res.status(200).json({ message: 'Email verified successfully! You can now log in.' });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -210,41 +183,10 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     // Send the email using your existing utility
-    const clientUrl = 'http://localhost:5173'; // Assuming frontend is on 5173
+    const clientUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
-    const message = `Please click on the following link to reset your password: ${resetUrl}`;
-    const htmlMessage = `
-      <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">
-        <h2 style="color: #1a4331; margin-bottom: 20px;">True Eats</h2>
-        <p style="color: #64748b; font-size: 16px; margin-bottom: 30px;">
-          We received a request to reset the password for your account. Click the button below to choose a new password.
-        </p>
-        
-        <!-- The Main Button -->
-        <a href="${resetUrl}" style="background-color: #1a4331; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; display: inline-block;">
-          Reset My Password
-        </a>
-
-        <!-- The Fallback Link -->
-        <p style="color: #64748b; font-size: 14px; margin-top: 30px;">
-          If the button doesn't work, copy and paste this link into your browser:
-        </p>
-        <p style="color: #1a4331; font-size: 13px; word-break: break-all; background-color: #f1f5f9; padding: 12px; border-radius: 8px;">
-          ${resetUrl}
-        </p>
-
-        <p style="color: #94a3b8; font-size: 12px; margin-top: 30px;">
-          If you did not request a password reset, you can safely ignore this email.
-        </p>
-      </div>
-    `;
-
-    // Send email without awaiting to prevent blocking the response
-    sendEmail(user.email, 'True Eats - Password Reset', message, htmlMessage)
-      .catch(async (error) => {
-        console.error('Password reset email failed:', error);
-        // Optional: you might want to log this specifically
-      });
+    // Send the password reset email using the specialized utility
+    sendPasswordResetEmail(user.email, resetUrl).catch(err => console.error('Password reset email failed:', err));
 
     res.json({ message: 'Password reset link sent to your email!' });
   } catch (error) {

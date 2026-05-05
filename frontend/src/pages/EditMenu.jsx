@@ -6,6 +6,7 @@ import {
     ToggleLeft, ToggleRight, Pencil, Check, X,
     ArrowLeft, Plus, Upload, Link, ChevronLeft, ChevronRight, Image
 } from 'lucide-react';
+import { getImageUrl } from '../utils/helpers';
 
 const c = {
     forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a',
@@ -58,7 +59,7 @@ const ImageCarousel = ({ images = [], unavailable }) => {
     return (
         <div style={{ height: '190px', position: 'relative', overflow: 'hidden', backgroundColor: '#000' }}>
             <img
-                src={list[idx]}
+                src={getImageUrl(list[idx])}
                 alt=""
                 style={{ width: '100%', height: '100%', objectFit: 'cover', transition: '0.2s' }}
                 onError={e => { e.target.src = 'https://placehold.co/400x200?text=No+Image'; }}

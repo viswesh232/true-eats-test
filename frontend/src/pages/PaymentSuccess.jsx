@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, Package, Home, ShoppingBag, XCircle, RefreshCw, Phone, Clock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Package, Home, ShoppingBag, XCircle, RefreshCw, Phone, Clock } from 'lucide-react';
 import { CartContext } from '../context/CartContext';
 
 const c = { forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a', white: '#fff' };
@@ -42,6 +42,9 @@ function SuccessScreen({ order, navigate }) {
             ))}
 
             <div style={{ backgroundColor: c.white, borderRadius: '32px', padding: '48px 40px', maxWidth: '520px', width: '100%', textAlign: 'center', boxShadow: '0 32px 80px rgba(26,67,49,0.18)', animation: 'slideUp 0.5s ease both' }}>
+                <button onClick={() => navigate('/')} style={{ position: 'absolute', top: '24px', left: '24px', display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.92)', border: 'none', borderRadius: '999px', padding: '10px 14px', color: c.forest, cursor: 'pointer', fontWeight: 700, boxShadow: '0 10px 30px rgba(0,0,0,0.12)' }}>
+                    <ArrowLeft size={18} /> Home
+                </button>
 
                 {/* Check icon */}
                 <div style={{ width: '96px', height: '96px', borderRadius: '50%', background: 'linear-gradient(135deg, #d1fae5, #6ee7b7)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px', animation: 'popIn 0.65s 0.1s ease both, pulse 2s 1s ease infinite' }}>

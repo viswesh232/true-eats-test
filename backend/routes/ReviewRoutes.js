@@ -6,7 +6,7 @@ const {
     addReview,
     deleteReview,
     getAllReviews,
-} = require('../controllers/ReviewController');
+} = require('../controllers/reviewController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 // Admin

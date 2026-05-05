@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import './ProductPage.css';
 import './Home.css';
+import { getImageUrl } from '../utils/helpers';
 
 const c = {
     forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a',
@@ -54,7 +55,7 @@ const Carousel = ({ images }) => {
         <>
             <div style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', backgroundColor: '#f8fafc', aspectRatio: '1/1', width: '100%' }}>
                 
-                <img src={list[idx]} alt=""
+                <img src={getImageUrl(list[idx])} alt=""
                     onClick={() => setIsModalOpen(true)}
                     style={{ 
                         width: '100%', height: '100%', objectFit: 'contain', display: 'block', 
@@ -75,7 +76,7 @@ const Carousel = ({ images }) => {
                     {/* Thumbnails */}
                     <div style={{ display: 'flex', gap: '10px', padding: '16px', position: 'absolute', bottom: 0, left: 0, right: 0, overflowX: 'auto', justifyContent: 'center' }}>
                         {list.map((img, i) => (
-                            <img key={i} src={img} alt=""
+                            <img key={i} src={getImageUrl(img)} alt=""
                                 onClick={(e) => { e.stopPropagation(); setIdx(i); }}
                                 style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '10px', cursor: 'pointer', border: i === idx ? `2px solid ${c.forest}` : '2px solid transparent', opacity: i === idx ? 1 : 0.7, transition: 'all 0.2s', flexShrink: 0, backgroundColor: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
                         ))}
@@ -108,7 +109,7 @@ const Carousel = ({ images }) => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
                         {list.map((img, i) => (
                             <img 
-                                key={i} src={img} alt="" 
+                                key={i} src={getImageUrl(img)} alt="" 
                                 onClick={(e) => e.stopPropagation()} 
                                 style={{
                                     width: '100%', height: 'auto', objectFit: 'contain',
@@ -561,7 +562,7 @@ const ProductPage = () => {
                                     {r.images && r.images.length > 0 && (
                                         <div style={{ display: 'flex', gap: '8px', marginTop: '12px', overflowX: 'auto' }}>
                                             {r.images.map((imgUrl, i) => (
-                                                <img key={i} src={imgUrl.startsWith('http') ? imgUrl : `https://true-eats-test1.onrender.com${imgUrl}`} alt="Review" style={{ height: '72px', width: '72px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
+                                                <img key={i} src={getImageUrl(imgUrl)} alt="Review" style={{ height: '72px', width: '72px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #e2e8f0' }} />
                                             ))}
                                         </div>
                                     )}

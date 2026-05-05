@@ -1,7 +1,6 @@
 const Contact = require('../models/Contact');
 const User = require('../models/User');
-const sendEmail = require('../utils/sendEmail');
-const { sendAdminMessageEmail } = require('../utils/sendEmail');
+const { sendEmail, sendAdminMessageEmail } = require('../utils/sendEmail');
 
 // Create contact message
 exports.createContact = async (req, res) => {

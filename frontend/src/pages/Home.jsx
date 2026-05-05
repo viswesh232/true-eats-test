@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
+import { getImageUrl } from '../utils/helpers';
 import heroImage from '../assets/hero.png';
 import banner1 from '../assets/banner.png';
 import logo from '../assets/logo.jpg'
@@ -133,11 +134,6 @@ export default function Home() {
     }), [activeCategory, products, searchTerm]);
 
     const backendUrl = API.defaults.baseURL.replace('/api', '');
-    const getImageUrl = (url) => {
-        if (!url) return '';
-        if (url.startsWith('/uploads')) return `${backendUrl}${url}`;
-        return url;
-    };
 
     const getQty = id => cartItems.find(i => i._id === id)?.qty || 0;
     const getImgs = p => {

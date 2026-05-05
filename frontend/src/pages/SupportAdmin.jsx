@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { ArrowLeft, CheckCircle, Clock, ImagePlus, MessageCircle, RefreshCw, Search, Send, XCircle } from 'lucide-react';
@@ -11,12 +11,7 @@ const STATUS_STYLE = {
     closed: { bg: '#f1f5f9', text: '#475569', label: 'Closed', icon: XCircle },
 };
 
-const getImageUrl = (path) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    const base = API.defaults.baseURL?.replace(/\/api$/, '') || '';
-    return `${base}${path}`;
-};
+import { getImageUrl } from '../utils/helpers';
 
 const formatTopic = (topic) => (topic || 'general').replace(/_/g, ' ');
 
@@ -64,7 +59,7 @@ const SupportAdmin = () => {
         loadTickets();
         const interval = setInterval(() => {
             fetchTickets().catch((err) => console.error(err));
-        }, 1000);
+        }, 10000);
 
         return () => {
             isMounted = false;

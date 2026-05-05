@@ -3,7 +3,7 @@ const router  = express.Router();
 const {
     createTicket, getMyTickets, replyToTicket,
     getAllTickets, adminReply, closeTicket,
-} = require('../controllers/SupportController');
+} = require('../controllers/supportController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const upload = require('../middleware/Upload');
 

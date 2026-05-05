@@ -1,142 +1,227 @@
 const nodemailer = require('nodemailer');
 
+// 1. Create the Transporter
+// Using 'service: gmail' is recommended for Gmail to handle specific settings automatically
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // use SSL
-    pool: true,   // use pooled connections
-    maxConnections: 5,
-    maxMessages: 100,
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
     },
 });
 
-const wrap = (content) => `
-<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;">
-  <div style="background:#1a4331;padding:24px 32px;display:flex;align-items:center;gap:12px;">
-    <span style="color:#fcd5ce;font-size:22px;font-weight:900;letter-spacing:1px;">TRUE EATS</span>
-  </div>
-  <div style="padding:32px;">
-    ${content}
-  </div>
-  <div style="background:#f4f7f6;padding:16px 32px;font-size:12px;color:#64748b;text-align:center;">
-    Copyright True Eats | The Way Food Was Meant To Be
-  </div>
-</div>`;
-
-const sendVerificationEmail = async (email, verificationUrl) => {
-    try {
-        await transporter.sendMail({
-            from: `"True Eats" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: 'Verify Your True Eats Account',
-            html: wrap(`
-                <h2 style="color:#1a4331;margin:0 0 16px;">Welcome to True Eats!</h2>
-                <p style="color:#475569;line-height:1.6;">Thanks for signing up. Click the button below to verify your email and activate your account.</p>
-                <a href="${verificationUrl}" style="display:inline-block;margin:20px 0;padding:14px 28px;background:#1a4331;color:#fcd5ce;text-decoration:none;border-radius:10px;font-weight:bold;">
-                    Verify My Account
-                </a>
-                <p style="font-size:13px;color:#94a3b8;">If the button does not work, copy this link: ${verificationUrl}</p>
-            `),
-        });
-    } catch (error) {
-        console.error('Verification email failed:', error.message);
+// Verify connection configuration
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('SMTP Connection Error:', error);
+    } else {
+        console.log('SMTP Server is ready to take our messages');
     }
-};
+});
 
-const sendOrderUpdateEmail = async (email, { customerName, orderId, message, trackingId, courierName }) => {
-    try {
-        await transporter.sendMail({
-            from: `"True Eats" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: `Update on your True Eats Order #${orderId}`,
-            html: wrap(`
-                <h2 style="color:#1a4331;margin:0 0 8px;">Hi ${customerName},</h2>
-                <p style="color:#475569;margin:0 0 20px;">Here is an update on your order <strong style="color:#1a4331;">#${orderId}</strong>:</p>
-                <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:20px;margin-bottom:20px;">
-                    <p style="margin:0;color:#065f46;font-size:15px;line-height:1.6;">${message}</p>
-                </div>
-                ${trackingId ? `
-                <div style="background:#f8fafc;border-radius:10px;padding:16px;margin-bottom:16px;">
-                    <p style="margin:0 0 4px;font-size:12px;font-weight:bold;color:#64748b;text-transform:uppercase;">Tracking Information</p>
-                    <p style="margin:0;font-size:15px;color:#1a4331;font-weight:bold;">${courierName || 'Private Courier'}: ${trackingId}</p>
-                </div>` : ''}
-                <p style="color:#64748b;font-size:13px;">Questions? Just reply to this email.</p>
-            `),
-        });
-    } catch (error) {
-        console.error('Order update email failed:', error.message);
-        throw error;
-    }
-};
+/**
+ * Standard Email Wrapper for True Eats
+ * Provides a consistent, premium look for all emails.
+ */
+const wrapTemplate = (content) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        .container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: #1a4331;
+            padding: 30px;
+            text-align: center;
+        }
+        .header span {
+            color: #fcd5ce;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .body {
+            padding: 40px 30px;
+            line-height: 1.6;
+            color: #334155;
+        }
+        .footer {
+            background: #f8fafc;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #64748b;
+            border-top: 1px solid #e2e8f0;
+        }
+        .button {
+            display: inline-block;
+            margin: 25px 0;
+            padding: 14px 32px;
+            background: #1a4331;
+            color: #fcd5ce !important;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <span>True Eats</span>
+        </div>
+        <div class="body">
+            ${content}
+        </div>
+        <div class="footer">
+            &copy; ${new Date().getFullYear()} True Eats | The Way Food Was Meant To Be<br>
+            If you have any questions, feel free to contact us.
+        </div>
+    </div>
+</body>
+</html>`;
 
-const sendCouponEmail = async (email, { customerName, couponCode, discountText, message }) => {
-    try {
-        await transporter.sendMail({
-            from: `"True Eats" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: 'A special offer for you from True Eats',
-            html: wrap(`
-                <h2 style="color:#1a4331;margin:0 0 8px;">Hey ${customerName}!</h2>
-                <p style="color:#475569;line-height:1.6;">${message || 'We have a special offer just for you!'}</p>
-                <div style="background:#1a4331;border-radius:14px;padding:28px;text-align:center;margin:24px 0;">
-                    <p style="color:rgba(252,213,206,0.7);margin:0 0 8px;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Your Exclusive Coupon Code</p>
-                    <div style="background:#fcd5ce;border-radius:10px;padding:14px 28px;display:inline-block;margin:8px 0;">
-                        <span style="font-family:monospace;font-size:28px;font-weight:900;color:#1a4331;letter-spacing:4px;">${couponCode}</span>
-                    </div>
-                    <p style="color:#fcd5ce;margin:8px 0 0;font-size:14px;font-weight:bold;">${discountText}</p>
-                </div>
-                <p style="color:#64748b;font-size:13px;">Apply this code at checkout on your next order. Valid until admin removes it.</p>
-            `),
-        });
-    } catch (error) {
-        console.error('Coupon email failed:', error.message);
-        throw error;
-    }
-};
-
-const sendAdminMessageEmail = async (email, { customerName, subject, message }) => {
-    try {
-        await transporter.sendMail({
-            from: `"True Eats" <${process.env.EMAIL_USER}>`,
-            to: email,
-            subject: subject || 'A message from True Eats',
-            html: wrap(`
-                <h2 style="color:#1a4331;margin:0 0 8px;">Hi ${customerName},</h2>
-                <p style="color:#475569;line-height:1.6;margin:0 0 16px;">Our team sent you the following update:</p>
-                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:18px;">
-                    <p style="margin:0;color:#334155;line-height:1.7;white-space:pre-line;">${message}</p>
-                </div>
-                <p style="color:#64748b;font-size:13px;margin-top:18px;">If you need help, reply to this email or contact our support team.</p>
-            `),
-        });
-    } catch (error) {
-        console.error('Admin message email failed:', error.message);
-        throw error;
-    }
-};
-
+/**
+ * Generic Email Sender
+ */
 const sendEmail = async (email, subject, text, html) => {
     try {
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+        const mailOptions = {
+            from: `"True Eats" <${process.env.EMAIL_USER}>`,
             to: email,
-            subject,
-            text,
-            html,
-        });
-        console.log('Email sent successfully');
+            subject: subject,
+            text: text,
+            html: html || wrapTemplate(`<p>${text}</p>`),
+        };
+
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent: %s', info.messageId);
+        return info;
     } catch (error) {
-        console.log('Email not sent');
-        console.log(error);
-        throw error;
+        console.error('Email sending failed:', error);
+        // We throw the error so the controller can handle it if needed
+        throw new Error('Email service unavailable');
     }
 };
 
-module.exports = sendEmail;
+/**
+ * Specifically for Account Verification
+ */
+const sendVerificationEmail = async (email, verificationUrl) => {
+    const html = wrapTemplate(`
+        <h2 style="color: #1a4331; margin-top: 0;">Verify Your Email</h2>
+        <p>Welcome to <strong>True Eats</strong>! We're excited to have you on board. To start ordering delicious, healthy food, please verify your email address by clicking the button below:</p>
+        <div style="text-align: center;">
+            <a href="${verificationUrl}" class="button">Verify My Account</a>
+        </div>
+        <p style="font-size: 14px; color: #64748b; margin-top: 30px;">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <span style="word-break: break-all; color: #1a4331;">${verificationUrl}</span>
+        </p>
+    `);
+
+    return sendEmail(email, 'Verify Your True Eats Account', 'Please verify your account.', html);
+};
+
+/**
+ * Specifically for Order Updates (Status changes, tracking)
+ */
+const sendOrderUpdateEmail = async (email, { customerName, orderId, message, trackingId, courierName }) => {
+    const trackingHtml = trackingId ? `
+        <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #64748b;">TRACKING INFO</p>
+            <p style="margin: 5px 0 0; font-size: 16px; color: #1a4331; font-weight: bold;">
+                ${courierName || 'Private Courier'}: ${trackingId}
+            </p>
+        </div>` : '';
+
+    const html = wrapTemplate(`
+        <h2 style="color: #1a4331; margin-top: 0;">Hi ${customerName},</h2>
+        <p>We have an update regarding your order <strong style="color: #1a4331;">${orderId}</strong>:</p>
+        <p style="font-size: 16px; padding: 15px; background: #f0fdf4; border-left: 4px solid #1a4331; border-radius: 4px;">
+            ${message}
+        </p>
+        ${trackingHtml}
+        <p style="font-size: 14px; color: #64748b;">You can check your order history in the app for more details.</p>
+    `);
+
+    return sendEmail(email, `Update on True Eats Order ${orderId}`, message, html);
+};
+
+/**
+ * Specifically for Coupon/Offers
+ */
+const sendCouponEmail = async (email, { customerName, couponCode, discountText, message }) => {
+    const html = wrapTemplate(`
+        <h2 style="color: #1a4331; margin-top: 0;">Special Offer for ${customerName}!</h2>
+        <p>${message || 'Enjoy a special discount on your next order from True Eats.'}</p>
+        <div style="background: #1a4331; border-radius: 16px; padding: 30px; text-align: center; margin: 25px 0;">
+            <p style="color: #fcd5ce; margin: 0 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Use Coupon Code</p>
+            <div style="background: #fcd5ce; display: inline-block; padding: 15px 30px; border-radius: 8px;">
+                <span style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: 900; color: #1a4331; letter-spacing: 5px;">${couponCode}</span>
+            </div>
+            <p style="color: #ffffff; margin: 15px 0 0; font-size: 18px; font-weight: 600;">${discountText}</p>
+        </div>
+        <p style="text-align: center; font-size: 13px; color: #64748b;">Terms and conditions apply. Valid for a limited time.</p>
+    `);
+
+    return sendEmail(email, 'Exclusive Offer from True Eats', 'You have a new coupon!', html);
+};
+
+/**
+ * Specifically for Direct Admin Messages
+ */
+const sendAdminMessageEmail = async (email, { customerName, subject, message }) => {
+    const html = wrapTemplate(`
+        <h2 style="color: #1a4331; margin-top: 0;">Hello ${customerName},</h2>
+        <p>A member of our team has sent you a message:</p>
+        <div style="white-space: pre-wrap; background: #f8fafc; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px; margin: 20px 0;">
+            ${message}
+        </div>
+        <p style="font-size: 14px; color: #64748b;">If you wish to reply, you can simply reply to this email.</p>
+    `);
+
+    return sendEmail(email, subject || 'Message from True Eats Support', message, html);
+};
+
+/**
+ * Specifically for Password Reset
+ */
+const sendPasswordResetEmail = async (email, resetUrl) => {
+    const html = wrapTemplate(`
+        <h2 style="color: #1a4331; margin-top: 0;">Reset Your Password</h2>
+        <p>We received a request to reset your password. If you didn't make this request, you can safely ignore this email.</p>
+        <p>Otherwise, click the button below to set a new password:</p>
+        <div style="text-align: center;">
+            <a href="${resetUrl}" class="button">Reset My Password</a>
+        </div>
+        <p style="font-size: 14px; color: #64748b; margin-top: 30px;">
+            This link will expire in 15 minutes.<br>
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            <span style="word-break: break-all; color: #1a4331;">${resetUrl}</span>
+        </p>
+    `);
+
+    return sendEmail(email, 'True Eats - Password Reset Request', 'Reset your password', html);
+};
+
+// Export all functions
+module.exports = sendEmail; // Default export for generic use
+module.exports.sendVerificationEmail = sendVerificationEmail;
 module.exports.sendOrderUpdateEmail = sendOrderUpdateEmail;
 module.exports.sendCouponEmail = sendCouponEmail;
 module.exports.sendAdminMessageEmail = sendAdminMessageEmail;
-module.exports.sendVerificationEmail = sendVerificationEmail;
+module.exports.sendPasswordResetEmail = sendPasswordResetEmail;
+

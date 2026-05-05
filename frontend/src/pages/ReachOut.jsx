@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Send, Trash2, CheckCircle, Clock, AlertCircle, Mail } from 'lucide-react';
 import API from '../api/axios';
 import './ReachOut.css';
@@ -9,6 +10,7 @@ const c = {
 };
 
 const ReachOut = ({ onBack }) => {
+    const navigate = useNavigate();
     const [messages, setMessages] = useState([]);
     const [selectedMessage, setSelectedMessage] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -38,6 +40,14 @@ const ReachOut = ({ onBack }) => {
         };
         fetchMessages();
     }, []);
+
+    const handleBack = () => {
+        if (typeof onBack === 'function') {
+            onBack();
+            return;
+        }
+        navigate('/dashboard');
+    };
 
     // Filter messages
     const filteredMessages = messages.filter(msg => {
@@ -128,6 +138,26 @@ const ReachOut = ({ onBack }) => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: c.bg, fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
+                <button
+                    onClick={handleBack}
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        border: 'none',
+                        background: 'none',
+                        padding: 0,
+                        color: c.forest,
+                        cursor: 'pointer',
+                        fontWeight: 700,
+                        marginBottom: '18px'
+                    }}
+                >
+                    <ChevronLeft size={18} /> Back to dashboard
+                </button>
+            </div>
+
             {/* Toast */}
             {toast && (
                 <div style={{

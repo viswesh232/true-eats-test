@@ -63,8 +63,27 @@ const AdminDashboard = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     
     // Theme State
-    const [isDark, setIsDark] = useState(true);
+    const [isDark, setIsDark] = useState(() => {
+        const stored = localStorage.getItem('trueEatsAdminTheme');
+        if (stored === 'light') return false;
+        if (stored === 'dark') return true;
+        return true;
+    });
     const t = isDark ? darkTheme : lightTheme;
+
+    useEffect(() => {
+        localStorage.setItem('trueEatsAdminTheme', isDark ? 'dark' : 'light');
+    }, [isDark]);
+
+    useEffect(() => {
+        const syncTheme = (event) => {
+            if (event.key === 'trueEatsAdminTheme') {
+                setIsDark(event.newValue !== 'light');
+            }
+        };
+        window.addEventListener('storage', syncTheme);
+        return () => window.removeEventListener('storage', syncTheme);
+    }, []);
 
     useEffect(() => {
         Promise.all([

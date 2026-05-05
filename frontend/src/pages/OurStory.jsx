@@ -9,6 +9,11 @@ const OurStory = () => {
 
     return (
         <div style={{ minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: '#fafafa' }}>
+            <div style={{ padding: '24px 32px', maxWidth: '1200px', margin: '0 auto' }}>
+                <button onClick={() => navigate('/')} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: c.forest, cursor: 'pointer', fontWeight: 700, marginBottom: '20px' }}>
+                    <ArrowLeft size={18} /> Home
+                </button>
+            </div>
 
             {/* Hero */}
             <div style={{ backgroundColor: c.peach, padding: '80px 60px', textAlign: 'center' }}>

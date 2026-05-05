@@ -4,6 +4,7 @@ import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import { MapPin, CreditCard, ArrowLeft, Shield, Tag, X, Edit3, MessageSquare, Lock, Plus, Minus } from 'lucide-react';
+import { getImageUrl, formatPrice } from '../utils/helpers';
 
 const colors = {
     primary: '#472b29',
@@ -16,11 +17,7 @@ const colors = {
     softAccent: '#f0fdf4',
 };
 
-const formatPrice = (amount) => new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-}).format(amount || 0);
+
 
 const loadRazorpay = () => new Promise((resolve) => {
     if (window.Razorpay) {
@@ -35,17 +32,12 @@ const loadRazorpay = () => new Promise((resolve) => {
 });
 
 const Checkout = () => {
-    const { cartItems, clearCart } = useContext(CartContext);
+    const { cartItems, clearCart, addToCart, removeFromCart } = useContext(CartContext);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
 
-    const backendUrl = API.defaults.baseURL.replace('/api', '');
-    const getImageUrl = (url) => {
-        if (!url) return '';
-        if (url.startsWith('/uploads')) return `${backendUrl}${url}`;
-        return url;
-    };
+
 
     const [settings, setSettings] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState('Online');

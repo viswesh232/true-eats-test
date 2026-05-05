@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
 import API from '../api/axios';
 
 const c = { forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a', white: '#fff' };
@@ -44,6 +44,11 @@ const ContactUs = () => {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#fafafa', fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ padding: '20px 24px', maxWidth: '1200px', margin: '0 auto' }}>
+                <button onClick={() => navigate('/')} style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: c.forest, cursor: 'pointer', fontWeight: '700', marginBottom: '16px' }}>
+                    <ArrowLeft size={18} /> Home
+                </button>
+            </div>
 
             {/* Hero banner */}
             <div style={{ backgroundColor: c.peach, padding: '60px', textAlign: 'center' }}>

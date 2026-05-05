@@ -442,8 +442,7 @@ exports.sendOrderUpdate = async (req, res) => {
     try {
         const { message, trackingId, courierName } = req.body;
         if (!message) return res.status(400).json({ message: 'Message is required' });
-
-        const order = await Order.findById(req.params.id)
+        const order = await Order.findById(req.params.id)
             .populate('user', 'firstName lastName email');
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
