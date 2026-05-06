@@ -11,21 +11,21 @@ const c = { forest: '#1a4331', peach: '#fcd5ce', white: '#ffffff', slate: '#6474
 
 /* ── Order status map (covers ALL backend enum values) ── */
 const ORDER_STATUS = {
-    'Pending Payment': { label: 'Pending Payment', icon: CreditCard,    bg: '#fef3c7', text: '#92400e' },
-    'Placed':          { label: 'Order Placed',    icon: CheckCircle,   bg: '#dcfce7', text: '#15803d' },
-    'Processing':      { label: 'Processing',      icon: Clock,         bg: '#dbeafe', text: '#1e40af' },
-    'Preparing':       { label: 'Preparing',       icon: Package,       bg: '#ede9fe', text: '#5b21b6' },
-    'Shipped':         { label: 'On the Way',      icon: Truck,         bg: '#cffafe', text: '#0e7490' },
-    'Delivered':       { label: 'Delivered',       icon: CheckCircle,   bg: '#d1fae5', text: '#065f46' },
-    'Cancelled':       { label: 'Cancelled',       icon: XCircle,       bg: '#fee2e2', text: '#991b1b' },
+    'Pending Payment': { label: 'Pending Payment', icon: CreditCard, bg: '#fef3c7', text: '#92400e' },
+    'Placed': { label: 'Order Placed', icon: CheckCircle, bg: '#dcfce7', text: '#15803d' },
+    'Processing': { label: 'Processing', icon: Clock, bg: '#dbeafe', text: '#1e40af' },
+    'Preparing': { label: 'Preparing', icon: Package, bg: '#ede9fe', text: '#5b21b6' },
+    'Shipped': { label: 'On the Way', icon: Truck, bg: '#cffafe', text: '#0e7490' },
+    'Delivered': { label: 'Delivered', icon: CheckCircle, bg: '#d1fae5', text: '#065f46' },
+    'Cancelled': { label: 'Cancelled', icon: XCircle, bg: '#fee2e2', text: '#991b1b' },
 };
 
 /* ── Payment status badge ── */
 const PAY_STATUS = {
-    Paid:     { label: '✅ Paid',      bg: '#dcfce7', text: '#15803d' },
-    Pending:  { label: '⏳ Pending',   bg: '#fef9c3', text: '#854d0e' },
-    Failed:   { label: '❌ Failed',    bg: '#fee2e2', text: '#b91c1c' },
-    Refunded: { label: '↩ Refunded',  bg: '#ede9fe', text: '#6d28d9' },
+    Paid: { label: '✅ Paid', bg: '#dcfce7', text: '#15803d' },
+    Pending: { label: '⏳ Pending', bg: '#fef9c3', text: '#854d0e' },
+    Failed: { label: '❌ Failed', bg: '#fee2e2', text: '#b91c1c' },
+    Refunded: { label: '↩ Refunded', bg: '#ede9fe', text: '#6d28d9' },
 };
 
 const fmt = n => `₹${Number(n || 0).toLocaleString('en-IN')}`;
@@ -52,8 +52,8 @@ const Orders = () => {
 
     const filtered = filter === 'all' ? orders
         : filter === 'active' ? orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status))
-        : filter === 'failed' ? orders.filter(o => o.paymentStatus === 'Failed' || o.status === 'Pending Payment')
-        : orders.filter(o => o.status === filter);
+            : filter === 'failed' ? orders.filter(o => o.paymentStatus === 'Failed' || o.status === 'Pending Payment')
+                : orders.filter(o => o.status === filter);
 
     const handleCancelOrder = async (orderId) => {
         if (!window.confirm('Are you sure you want to cancel this order?')) return;
@@ -84,11 +84,11 @@ const Orders = () => {
             {orders.length > 0 && (
                 <div style={{ background: '#fff', borderBottom: '1px solid #f1f5f9', padding: '0 36px', display: 'flex', gap: '4px', overflowX: 'auto' }}>
                     {[
-                        { key: 'all',     label: 'All Orders' },
-                        { key: 'active',  label: 'Active' },
+                        { key: 'all', label: 'All Orders' },
+                        { key: 'active', label: 'Active' },
                         { key: 'Shipped', label: 'Shipped' },
                         { key: 'Delivered', label: 'Delivered' },
-                        { key: 'failed',  label: '⚠ Failed / Pending' },
+                        { key: 'failed', label: '⚠ Failed / Pending' },
                         { key: 'Cancelled', label: 'Cancelled' },
                     ].map(f => (
                         <button key={f.key} onClick={() => setFilter(f.key)} style={{
@@ -225,7 +225,7 @@ const Orders = () => {
                                                 Paid on {fmtDate(order.paidAt)}
                                             </div>
                                         )}
-                                        
+
                                         {!['Delivered', 'Shipped', 'Cancelled'].includes(order.status) && (
                                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
                                                 <button onClick={() => handleCancelOrder(order._id)} style={{ padding: '8px 16px', backgroundColor: '#fff', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}>

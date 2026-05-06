@@ -9,14 +9,21 @@ const getPrimaryImage = (product) => {
     return '';
 };
 
-const normalizeCartItem = (product) => ({
-    ...product,
-    cartId: product.weight ? `${product._id}-${product.weight}` : product._id,
-    image: getPrimaryImage(product),
-    images: Array.isArray(product.images)
-        ? product.images
-        : (product.image ? [product.image] : []),
-});
+const normalizeCartItem = (product) => {
+    const weight = product.weight || (product.weights?.length > 0 ? product.weights[0].weight : '');
+    const price = product.weight ? product.price : (product.weights?.length > 0 ? product.weights[0].price : product.price);
+
+    return {
+        ...product,
+        weight,
+        price,
+        cartId: weight ? `${product._id}-${weight}` : product._id,
+        image: getPrimaryImage(product),
+        images: Array.isArray(product.images)
+            ? product.images
+            : (product.image ? [product.image] : []),
+    };
+};
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState(() => {
@@ -57,10 +64,15 @@ export const CartProvider = ({ children }) => {
         });
     };
 
+    const deleteFromCart = (product) => {
+        const normalizedProduct = normalizeCartItem(product);
+        setCartItems(prev => prev.filter(x => x.cartId !== normalizedProduct.cartId));
+    };
+
     const clearCart = () => setCartItems([]);
 
     return (
-        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, clearCart }}>
+        <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, deleteFromCart, clearCart }}>
             {children}
         </CartContext.Provider>
     );

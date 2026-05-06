@@ -7,8 +7,8 @@ const c = { forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a', white: '#
 
 const ContactUs = () => {
     const navigate = useNavigate();
-    const [form, setForm]       = useState({ name: '', email: '', subject: '', message: '' });
-    const [sent, setSent]       = useState(false);
+    const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+    const [sent, setSent] = useState(false);
     const [sending, setSending] = useState(false);
 
     const handleSend = async () => {
@@ -61,10 +61,10 @@ const ContactUs = () => {
                 {/* Info column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', flex: '1 1 300px' }}>
                     {[
-                        { icon: Mail,  title: 'Email',    val: 'hello@trueeats.in',  sub: 'We reply within 24 hours' },
-                        { icon: Phone, title: 'Phone',    val: '+91 98765-43210',    sub: 'Mon–Sat, 10am–6pm' },
-                        { icon: MapPin,title: 'Location', val: 'Hyderabad, India',   sub: 'No walk-ins — online orders only' },
-                        { icon: Clock, title: 'Hours',    val: 'Mon–Sat 10am–6pm',  sub: 'Closed on Sundays' },
+                        { icon: Mail, title: 'Email', val: 'hello@trueeats.in', sub: 'We reply within 24 hours' },
+                        { icon: Phone, title: 'Phone', val: '+91 98765-43210', sub: 'Mon–Sat, 10am–6pm' },
+                        { icon: MapPin, title: 'Location', val: 'Hyderabad, India', sub: 'No walk-ins — online orders only' },
+                        { icon: Clock, title: 'Hours', val: 'Mon–Sat 10am–6pm', sub: 'Closed on Sundays' },
                     ].map(({ icon, title, val, sub }) => (
                         <div key={title} style={{ backgroundColor: c.white, borderRadius: '16px', padding: '18px 20px', display: 'flex', gap: '14px', alignItems: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
                             <div style={{ backgroundColor: c.peach, padding: '10px', borderRadius: '12px', flexShrink: 0 }}>

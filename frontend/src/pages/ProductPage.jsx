@@ -54,40 +54,40 @@ const Carousel = ({ images }) => {
     return (
         <>
             <div style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', backgroundColor: '#f8fafc', aspectRatio: '1/1', width: '100%' }}>
-                
+
                 <img src={getImageUrl(list[idx])} alt=""
                     onClick={() => setIsModalOpen(true)}
-                    style={{ 
-                        width: '100%', height: '100%', objectFit: 'contain', display: 'block', 
+                    style={{
+                        width: '100%', height: '100%', objectFit: 'contain', display: 'block',
                         cursor: 'zoom-in', transition: '0.2s'
                     }}
                     onError={e => { e.target.src = 'https://placehold.co/600x500?text=No+Image'; }} />
 
-            {list.length > 1 && (
-                <>
-                    <button onClick={(e) => { e.stopPropagation(); setIdx(i => (i - 1 + list.length) % list.length); }}
-                        style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'rgba(255,255,255,0.8)', color: '#1a3a2a', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                        <ChevronLeft size={20} />
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setIdx(i => (i + 1) % list.length); }}
-                        style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'rgba(255,255,255,0.8)', color: '#1a3a2a', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-                        <ChevronRight size={20} />
-                    </button>
-                    {/* Thumbnails */}
-                    <div style={{ display: 'flex', gap: '10px', padding: '16px', position: 'absolute', bottom: 0, left: 0, right: 0, overflowX: 'auto', justifyContent: 'center' }}>
-                        {list.map((img, i) => (
-                            <img key={i} src={getImageUrl(img)} alt=""
-                                onClick={(e) => { e.stopPropagation(); setIdx(i); }}
-                                style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '10px', cursor: 'pointer', border: i === idx ? `2px solid ${c.forest}` : '2px solid transparent', opacity: i === idx ? 1 : 0.7, transition: 'all 0.2s', flexShrink: 0, backgroundColor: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
-                        ))}
-                    </div>
-                </>
-            )}
+                {list.length > 1 && (
+                    <>
+                        <button onClick={(e) => { e.stopPropagation(); setIdx(i => (i - 1 + list.length) % list.length); }}
+                            style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'rgba(255,255,255,0.8)', color: '#1a3a2a', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                            <ChevronLeft size={20} />
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); setIdx(i => (i + 1) % list.length); }}
+                            style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'rgba(255,255,255,0.8)', color: '#1a3a2a', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+                            <ChevronRight size={20} />
+                        </button>
+                        {/* Thumbnails */}
+                        <div style={{ display: 'flex', gap: '10px', padding: '16px', position: 'absolute', bottom: 0, left: 0, right: 0, overflowX: 'auto', justifyContent: 'center' }}>
+                            {list.map((img, i) => (
+                                <img key={i} src={getImageUrl(img)} alt=""
+                                    onClick={(e) => { e.stopPropagation(); setIdx(i); }}
+                                    style={{ width: '56px', height: '56px', objectFit: 'cover', borderRadius: '10px', cursor: 'pointer', border: i === idx ? `2px solid ${c.forest}` : '2px solid transparent', opacity: i === idx ? 1 : 0.7, transition: 'all 0.2s', flexShrink: 0, backgroundColor: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }} />
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* Lightbox Modal */}
             {isModalOpen && (
-                <div 
+                <div
                     onClick={() => setIsModalOpen(false)}
                     style={{
                         position: 'fixed', inset: 0, zIndex: 10000,
@@ -95,7 +95,7 @@ const Carousel = ({ images }) => {
                         overflowY: 'auto', padding: '60px 20px', cursor: 'zoom-out'
                     }}
                 >
-                    <button 
+                    <button
                         onClick={() => setIsModalOpen(false)}
                         style={{
                             position: 'fixed', top: '24px', right: '32px',
@@ -108,14 +108,14 @@ const Carousel = ({ images }) => {
                     >✕</button>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', width: '100%', maxWidth: '800px', margin: '0 auto' }}>
                         {list.map((img, i) => (
-                            <img 
-                                key={i} src={getImageUrl(img)} alt="" 
-                                onClick={(e) => e.stopPropagation()} 
+                            <img
+                                key={i} src={getImageUrl(img)} alt=""
+                                onClick={(e) => e.stopPropagation()}
                                 style={{
                                     width: '100%', height: 'auto', objectFit: 'contain',
                                     borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
                                     cursor: 'default', backgroundColor: '#fff'
-                                }} 
+                                }}
                             />
                         ))}
                     </div>
@@ -183,7 +183,7 @@ const ProductPage = () => {
     useEffect(() => {
         if (product) {
             document.title = `${product.name} | True Eats`;
-            
+
             let metaDesc = document.querySelector('meta[name="description"]');
             if (!metaDesc) {
                 metaDesc = document.createElement('meta');
@@ -191,7 +191,7 @@ const ProductPage = () => {
                 document.head.appendChild(metaDesc);
             }
             metaDesc.content = product.description ? product.description.substring(0, 150) + '...' : 'Delicious food from True Eats.';
-            
+
             let ogImage = document.querySelector('meta[property="og:image"]');
             if (!ogImage) {
                 ogImage = document.createElement('meta');
@@ -200,7 +200,7 @@ const ProductPage = () => {
             }
             const mainImg = (product.images && product.images[0]) ? product.images[0] : product.image;
             if (mainImg) ogImage.content = mainImg;
-            
+
             let ogTitle = document.querySelector('meta[property="og:title"]');
             if (!ogTitle) {
                 ogTitle = document.createElement('meta');
@@ -209,7 +209,7 @@ const ProductPage = () => {
             }
             ogTitle.content = product.name;
         }
-        
+
         // Cleanup title on unmount
         return () => { document.title = 'True Eats'; };
     }, [product]);
@@ -235,12 +235,12 @@ const ProductPage = () => {
     const selectedWeightPrice = product?.weights?.find(w => w.weight === weight)?.price || product?.price || 0;
 
     const handleAddToCart = () => {
-        for (let i = 0; i < qty; i++) addToCart({ ...product, price: selectedWeightPrice, weight: weight });
+        addToCart({ ...product, price: selectedWeightPrice, weight: weight }, qty);
         showToast(`${qty} × ${product.name} (${weight}) added to cart`);
     };
 
     const handleBuyNow = () => {
-        for (let i = 0; i < qty; i++) addToCart({ ...product, price: selectedWeightPrice, weight: weight });
+        addToCart({ ...product, price: selectedWeightPrice, weight: weight }, qty);
         navigate('/cart');
     };
 
@@ -515,7 +515,7 @@ const ProductPage = () => {
                                         {reviewError && <p style={{ color: '#ef4444', fontSize: '13px', margin: '0 0 12px', fontWeight: '600' }}>⚠ {reviewError}</p>}
 
                                         <div style={{ marginBottom: '14px' }}>
-                                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: c.forest, fontWeight: '700', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', padding: '10px 16px', borderRadius: '10px', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.backgroundColor='#e2e8f0'} onMouseLeave={e => e.currentTarget.style.backgroundColor='#f1f5f9'}>
+                                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: c.forest, fontWeight: '700', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', padding: '10px 16px', borderRadius: '10px', transition: 'all 0.2s' }} onMouseEnter={e => e.currentTarget.style.backgroundColor = '#e2e8f0'} onMouseLeave={e => e.currentTarget.style.backgroundColor = '#f1f5f9'}>
                                                 <Camera size={18} /> Upload Photos (Optional)
                                                 <input type="file" multiple accept="image/*" onChange={(e) => setMyImages([...myImages, ...Array.from(e.target.files)])} style={{ display: 'none' }} />
                                             </label>
@@ -582,37 +582,37 @@ const ProductPage = () => {
                                 .concat(allProducts.filter(p => p._id !== product._id && product.category && p.category !== product.category))
                                 .slice(0, 4)
                                 .map(p => {
-                                const imgs = (p.images || []).filter(Boolean).length ? p.images : p.image ? [p.image] : [];
-                                const q = cartItems.find(i => i._id === p._id)?.qty || 0;
-                                const original = p.originalPrice || p.comparePrice || null;
-                                const basePrice = p.weights?.[0]?.price || p.price || 0;
-                                const discount = original && original > basePrice ? Math.round((1 - basePrice / original) * 100) : null;
-                                return (
-                                    <div key={p._id} className="vcard">
-                                        <div className="vcard-img-wrap">
-                                            {imgs[0]
-                                                ? <img src={imgs[0]} alt={p.name} className="vcard-img" onClick={() => navigate(`/product/${p.slug || p._id}`)} />
-                                                : <div className="vcard-img img-placeholder">📦</div>
-                                            }
-                                            {imgs[1] && <img src={imgs[1]} alt={p.name} className="vcard-img-hover" onClick={() => navigate(`/product/${p.slug || p._id}`)} />}
-                                            {p.category && <span className="vcard-badge">{p.category}</span>}
-                                            {q === 0 && (
-                                                <button className="vcard-quick" onClick={(e) => { e.stopPropagation(); addToCart(p); showToast(`${p.name} added!`); }}>+ Quick Add</button>
-                                            )}
-                                        </div>
-                                        <div className="vcard-body">
-                                            <button className="vcard-name" onClick={() => navigate(`/product/${p.slug || p._id}`)}>{p.name}</button>
-                                            <div className="vcard-price-row">
-                                                <span className="vcard-price">{fmt(basePrice)}</span>
-                                                {original && original > basePrice && (
-                                                    <span className="vcard-price-orig">{fmt(original)}</span>
+                                    const imgs = (p.images || []).filter(Boolean).length ? p.images : p.image ? [p.image] : [];
+                                    const q = cartItems.find(i => i._id === p._id)?.qty || 0;
+                                    const original = p.originalPrice || p.comparePrice || null;
+                                    const basePrice = p.weights?.[0]?.price || p.price || 0;
+                                    const discount = original && original > basePrice ? Math.round((1 - basePrice / original) * 100) : null;
+                                    return (
+                                        <div key={p._id} className="vcard">
+                                            <div className="vcard-img-wrap">
+                                                {imgs[0]
+                                                    ? <img src={imgs[0]} alt={p.name} className="vcard-img" onClick={() => navigate(`/product/${p.slug || p._id}`)} />
+                                                    : <div className="vcard-img img-placeholder">📦</div>
+                                                }
+                                                {imgs[1] && <img src={imgs[1]} alt={p.name} className="vcard-img-hover" onClick={() => navigate(`/product/${p.slug || p._id}`)} />}
+                                                {p.category && <span className="vcard-badge">{p.category}</span>}
+                                                {q === 0 && (
+                                                    <button className="vcard-quick" onClick={(e) => { e.stopPropagation(); addToCart(p); showToast(`${p.name} added!`); }}>+ Quick Add</button>
                                                 )}
-                                                {discount && <span className="vcard-price-badge">{discount}% off</span>}
+                                            </div>
+                                            <div className="vcard-body">
+                                                <button className="vcard-name" onClick={() => navigate(`/product/${p.slug || p._id}`)}>{p.name}</button>
+                                                <div className="vcard-price-row">
+                                                    <span className="vcard-price">{fmt(basePrice)}</span>
+                                                    {original && original > basePrice && (
+                                                        <span className="vcard-price-orig">{fmt(original)}</span>
+                                                    )}
+                                                    {discount && <span className="vcard-price-badge">{discount}% off</span>}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
                         </div>
                     </div>
                 )}

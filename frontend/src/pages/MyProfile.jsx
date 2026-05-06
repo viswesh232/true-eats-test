@@ -9,7 +9,7 @@ const c = { forest: '#1a4331', peach: '#fcd5ce', white: '#ffffff', slate: '#6474
 const MyProfile = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -42,7 +42,7 @@ const MyProfile = () => {
     fetchProfile();
   }, []);
 
-    const handleChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     if (name.startsWith('address.')) {
       const field = name.split('.')[1];
@@ -86,17 +86,17 @@ const MyProfile = () => {
               </button>
             )}
 
-          {!isEditing ? (
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button onClick={() => setIsEditing(true)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: c.peach, color: c.forest, border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                <Edit2 size={16} /> Edit
+            {!isEditing ? (
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button onClick={() => setIsEditing(true)} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: c.peach, color: c.forest, border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                  <Edit2 size={16} /> Edit
+                </button>
+              </div>
+            ) : (
+              <button onClick={handleSave} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: c.forest, color: c.white, border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                {saving ? <Loader size={16} /> : <Save size={16} />} Save
               </button>
-            </div>
-          ) : (
-            <button onClick={handleSave} disabled={saving} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: c.forest, color: c.white, border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-              {saving ? <Loader size={16} /> : <Save size={16} />} Save
-            </button>
-          )}
+            )}
           </div>
         </div>
 
@@ -108,49 +108,49 @@ const MyProfile = () => {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={labelStyle}><User size={16}/> First Name</label>
+            <label style={labelStyle}><User size={16} /> First Name</label>
             <input name="firstName" value={formData.firstName} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={labelStyle}><User size={16}/> Last Name</label>
+            <label style={labelStyle}><User size={16} /> Last Name</label>
             <input name="lastName" value={formData.lastName} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
         </div>
 
-        <label style={labelStyle}><Mail size={16}/> Email Address</label>
+        <label style={labelStyle}><Mail size={16} /> Email Address</label>
         <input value={formData.email} disabled style={{ ...inputStyle, backgroundColor: c.light, cursor: 'not-allowed' }} title="Email cannot be changed" />
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={labelStyle}><Phone size={16}/> Phone Number</label>
+            <label style={labelStyle}><Phone size={16} /> Phone Number</label>
             <input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={labelStyle}><Phone size={16}/> Alt Phone (Optional)</label>
+            <label style={labelStyle}><Phone size={16} /> Alt Phone (Optional)</label>
             <input name="altPhoneNumber" value={formData.altPhoneNumber} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
         </div>
 
         <h3 style={{ borderBottom: `1px solid ${c.light}`, paddingBottom: '10px', marginTop: '20px', color: c.forest }}>Delivery Address</h3>
-        
+
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ flex: '1 1 150px' }}>
-            <label style={labelStyle}><MapPin size={16}/> Door No / Flat</label>
+            <label style={labelStyle}><MapPin size={16} /> Door No / Flat</label>
             <input name="address.doorNo" value={formData.address.doorNo} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
           <div style={{ flex: '2 1 250px' }}>
-            <label style={labelStyle}><MapPin size={16}/> Colony / Street</label>
+            <label style={labelStyle}><MapPin size={16} /> Colony / Street</label>
             <input name="address.colony" value={formData.address.colony} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
         </div>
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={labelStyle}><MapPin size={16}/> City</label>
+            <label style={labelStyle}><MapPin size={16} /> City</label>
             <input name="address.city" value={formData.address.city} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
           <div style={{ flex: '1 1 200px' }}>
-            <label style={labelStyle}><MapPin size={16}/> Pincode</label>
+            <label style={labelStyle}><MapPin size={16} /> Pincode</label>
             <input name="address.pincode" value={formData.address.pincode} onChange={handleChange} disabled={!isEditing} style={inputStyle} />
           </div>
         </div>

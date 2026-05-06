@@ -43,7 +43,7 @@ exports.registerUser = async (req, res) => {
       const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
 
       // Send verification email using the specialized utility
-      sendVerificationEmail(user.email, verifyUrl).catch(err => console.error('Signup email failed:', err));
+      await sendVerificationEmail(user.email, verifyUrl);
 
       return res.status(201).json({
         message: 'Signup successful. Please check your email to verify your account.',
@@ -186,7 +186,7 @@ exports.forgotPassword = async (req, res) => {
     const clientUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
     // Send the password reset email using the specialized utility
-    sendPasswordResetEmail(user.email, resetUrl).catch(err => console.error('Password reset email failed:', err));
+    await sendPasswordResetEmail(user.email, resetUrl);
 
     res.json({ message: 'Password reset link sent to your email!' });
   } catch (error) {

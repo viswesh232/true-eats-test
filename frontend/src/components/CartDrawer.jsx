@@ -29,7 +29,7 @@ const colors = {
 };
 
 const CartDrawer = ({ isOpen, onClose }) => {
-    const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
+    const { cartItems, addToCart, removeFromCart, deleteFromCart } = useContext(CartContext);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -189,7 +189,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                                 <div style={{ fontSize: '14px', fontWeight: 700, color: colors.text }}>{formatPrice(item.price * item.qty)}</div>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '8px' }}>
-                                                <button onClick={() => removeFromCart(item, true)} style={{ padding: '6px', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', color: colors.muted }}>
+                                                <button onClick={() => deleteFromCart(item)} style={{ padding: '6px', backgroundColor: '#f3f4f6', border: 'none', borderRadius: '6px', cursor: 'pointer', display: 'flex', color: colors.muted }}>
                                                     <Trash2 size={14} />
                                                 </button>
                                                 <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${colors.border}`, borderRadius: '6px', padding: '4px 6px', backgroundColor: '#fff' }}>

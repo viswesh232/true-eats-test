@@ -112,7 +112,7 @@ const sendEmail = async (email, subject, text, html) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log(`[Email Service] Email sent successfully! MessageID: ${info.messageId}`);
+        console.log(`[Email Service] SUCCESS: Email sent to ${email}. MessageID: ${info.messageId}`);
         return info;
     } catch (error) {
         console.error('--- NODEMAILER ERROR ---');
@@ -229,11 +229,13 @@ const sendPasswordResetEmail = async (email, resetUrl) => {
     return sendEmail(email, 'True Eats - Password Reset Request', 'Reset your password', html);
 };
 
-// Export all functions
-module.exports = sendEmail; // Default export for generic use
-module.exports.sendVerificationEmail = sendVerificationEmail;
-module.exports.sendOrderUpdateEmail = sendOrderUpdateEmail;
-module.exports.sendCouponEmail = sendCouponEmail;
-module.exports.sendAdminMessageEmail = sendAdminMessageEmail;
-module.exports.sendPasswordResetEmail = sendPasswordResetEmail;
+// Export all functions as an object
+module.exports = {
+    sendEmail,
+    sendVerificationEmail,
+    sendOrderUpdateEmail,
+    sendCouponEmail,
+    sendAdminMessageEmail,
+    sendPasswordResetEmail,
+};
 

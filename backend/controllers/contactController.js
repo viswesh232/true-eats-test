@@ -20,12 +20,12 @@ exports.createContact = async (req, res) => {
 
         await contact.save();
 
-        // Send confirmation email to user without awaiting
-        sendEmail(
+        // Send confirmation email to user
+        await sendEmail(
             email,
             'We received your message - True Eats',
             `Hi ${name},\n\nThank you for reaching out to True Eats! We have received your message and will get back to you within 24 hours.\n\nYour Message:\n${message}\n\nBest regards,\nTrue Eats Team`
-        ).catch(err => console.error('Failed to send confirmation email:', err));
+        );
 
         res.status(201).json({ message: 'Message received! We will reply soon.', contact });
     } catch (error) {
@@ -83,12 +83,11 @@ exports.sendReply = async (req, res) => {
         }
 
         // Send email to customer
-        // Send email to customer without awaiting
-        sendAdminMessageEmail(contact.email, {
+        await sendAdminMessageEmail(contact.email, {
             customerName: contact.name,
             subject: `Re: ${contact.subject || contact.name} - True Eats`,
             message: adminReply,
-        }).catch(err => console.error('Failed to send reply email:', err));
+        });
 
         // Update contact record
         contact.adminReply = adminReply;

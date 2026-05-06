@@ -446,14 +446,14 @@ exports.sendOrderUpdate = async (req, res) => {
             .populate('user', 'firstName lastName email');
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
-        // Send order update email without awaiting
-        sendOrderUpdateEmail(order.user.email, {
+        // Send order update email
+        await sendOrderUpdateEmail(order.user.email, {
             customerName: order.user.firstName,
             orderId: order.orderId,
             message,
             trackingId,
             courierName,
-        }).catch(err => console.error('Order update email failed:', err));
+        });
 
         res.json({ message: 'Email sent to ' + order.user.email });
     } catch (error) {

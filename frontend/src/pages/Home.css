@@ -307,8 +307,13 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.banner-arrow-left  { left: 16px; }
-.banner-arrow-right { right: 16px; }
+.banner-arrow-left {
+  left: 16px;
+}
+
+.banner-arrow-right {
+  right: 16px;
+}
 
 /* hero dots */
 .hero-dot {
@@ -329,19 +334,55 @@ body {
 
 /* ── Mobile banner ── */
 @media (max-width: 768px) {
-  .banner { height: 320px; }
-  .banner-cta-wrap { bottom: 20px; left: 20px; }
-  .banner-shop-btn { padding: 8px 16px; font-size: 13px; }
-  .banner-arrow { width: 32px; height: 32px; }
-  .banner-arrow-left  { left: 10px; }
-  .banner-arrow-right { right: 10px; }
+  .banner {
+    height: 320px;
+  }
+
+  .banner-cta-wrap {
+    bottom: 20px;
+    left: 20px;
+  }
+
+  .banner-shop-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .banner-arrow {
+    width: 32px;
+    height: 32px;
+  }
+
+  .banner-arrow-left {
+    left: 10px;
+  }
+
+  .banner-arrow-right {
+    right: 10px;
+  }
 }
 
 @media (max-width: 480px) {
-  .banner { height: 240px; }
-  .banner-cta-wrap { bottom: 14px; left: 14px; gap: 10px; }
-  .banner-shop-btn { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
-  .banner-arrow { width: 28px; height: 28px; }
+  .banner {
+    height: 240px;
+  }
+
+  .banner-cta-wrap {
+    bottom: 14px;
+    left: 14px;
+    gap: 10px;
+  }
+
+  .banner-shop-btn {
+    padding: 7px 14px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .banner-arrow {
+    width: 28px;
+    height: 28px;
+  }
 }
 
 /* ── Stats bar (below banner) ── */
@@ -358,7 +399,9 @@ body {
   border-right: 1px solid rgba(74, 44, 42, 0.12);
 }
 
-.hero-stat:last-child { border-right: none; }
+.hero-stat:last-child {
+  border-right: none;
+}
 
 .hero-stat-num {
   display: block;

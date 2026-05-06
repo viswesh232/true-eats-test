@@ -9,7 +9,7 @@ const c = { forest: '#1a4331', peach: '#fcd5ce', white: '#ffffff', slate: '#6474
 const VerifyEmail = () => {
   const { token } = useParams(); // Extracts the token from the URL
   const navigate = useNavigate();
-  
+
   const [status, setStatus] = useState('loading'); // 'loading', 'success', or 'error'
   const [message, setMessage] = useState('');
   const hasVerified = React.useRef(false);
@@ -18,10 +18,10 @@ const VerifyEmail = () => {
     const verifyUserEmail = async () => {
       if (hasVerified.current) return;
       hasVerified.current = true;
-      
+
       try {
         // Calls your existing backend authController.verifyEmail [1, 2]
-        const res = await API.get(`/auth/verify/${token}`); 
+        const res = await API.get(`/auth/verify/${token}`);
         setStatus('success');
         setMessage(res.data.message || 'Email verified successfully!');
       } catch (error) {
@@ -38,7 +38,7 @@ const VerifyEmail = () => {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f4f7f6' }}>
       <div style={{ backgroundColor: c.white, padding: '40px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', maxWidth: '400px', width: '100%' }}>
-        
+
         {/* LOADING STATE */}
         {status === 'loading' && (
           <>
@@ -54,7 +54,7 @@ const VerifyEmail = () => {
             <CheckCircle size={56} color="#10b981" style={{ margin: '0 auto 20px' }} />
             <h2 style={{ color: c.forest, margin: '0 0 10px 0' }}>Verified!</h2>
             <p style={{ color: c.slate, margin: 0 }}>{message}</p>
-            <button 
+            <button
               onClick={() => navigate('/login')}
               style={{ marginTop: '25px', width: '100%', padding: '15px', backgroundColor: c.forest, color: c.white, border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}
             >

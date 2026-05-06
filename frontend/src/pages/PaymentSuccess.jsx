@@ -183,7 +183,7 @@ const PaymentSuccess = () => {
     const { state } = useLocation();
     const navigate = useNavigate();
     const { clearCart } = useContext(CartContext);
-    
+
     const order = state?.order;
     const failed = state?.failed;
     const failReason = state?.reason;

@@ -30,7 +30,7 @@ const colors = {
 };
 
 const Cart = () => {
-    const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
+    const { cartItems, addToCart, removeFromCart, deleteFromCart } = useContext(CartContext);
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -43,8 +43,8 @@ const Cart = () => {
     const [showCoupons, setShowCoupons] = useState(false);
 
     useEffect(() => {
-        API.get('/settings').then(({ data }) => setSettings(data)).catch(() => {});
-        API.get('/settings/public-coupons').then(({ data }) => setPublicCoupons(data)).catch(() => {});
+        API.get('/settings').then(({ data }) => setSettings(data)).catch(() => { });
+        API.get('/settings/public-coupons').then(({ data }) => setPublicCoupons(data)).catch(() => { });
 
         if (user?._id) {
             API.get(`/settings/user-discount/${user._id}`).then(({ data }) => setUserDiscount(data)).catch(() => setUserDiscount(null));
@@ -97,7 +97,7 @@ const Cart = () => {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: colors.background, fontFamily: "'Inter', sans-serif", color: colors.text, padding: 'clamp(16px, 4vw, 40px) clamp(16px, 4vw, 32px)' }}>
             <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                
+
                 <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer', color: colors.muted, fontWeight: 600, fontSize: '14px', width: 'fit-content' }}>
                     <ArrowLeft size={16} /> Continue Shopping
                 </button>
@@ -155,11 +155,7 @@ const Cart = () => {
                                                             <Plus size={16} />
                                                         </button>
                                                     </div>
-                                                    <button onClick={() => {
-                                                        const itemToTrash = { ...item };
-                                                        itemToTrash.qty = 1;
-                                                        while (cartItems.find(x => x.cartId === item.cartId)?.qty > 0) { removeFromCart(itemToTrash); }
-                                                    }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, padding: '4px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                    <button onClick={() => deleteFromCart(item)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.danger, padding: '4px', fontSize: '12px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                         <Trash2 size={14} /> REMOVE
                                                     </button>
                                                 </div>
@@ -176,7 +172,7 @@ const Cart = () => {
                         <div style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                             <div style={{ backgroundColor: colors.surface, borderRadius: '16px', border: `1px solid ${colors.border}`, padding: 'clamp(20px, 4vw, 32px)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                                 <h2 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 20px' }}>Order Summary</h2>
-                                
+
                                 <div style={{ display: 'grid', gap: '12px', marginBottom: '24px' }}>
                                     <Row label="Subtotal" value={formatPrice(subtotal)} />
                                     <Row label="Shipping" value={deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)} highlight={deliveryFee === 0} />
@@ -208,7 +204,7 @@ const Cart = () => {
                                 <h3 style={{ fontSize: '16px', fontWeight: 700, margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <Tag size={18} color={colors.accent} /> Coupons & Offers
                                 </h3>
-                                
+
                                 {activeCoupon ? (
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: `1px dashed ${colors.accent}`, backgroundColor: '#f0fdf4', borderRadius: '12px', padding: '16px' }}>
                                         <div>
@@ -224,7 +220,7 @@ const Cart = () => {
                                             <button onClick={() => handleApplyCoupon()} style={{ padding: '0 20px', backgroundColor: colors.background, border: `1px solid ${colors.border}`, color: colors.text, borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}>APPLY</button>
                                         </div>
                                         {derivedCouponError && <div style={{ color: colors.danger, fontSize: '13px', marginBottom: '16px', fontWeight: 600 }}>{derivedCouponError}</div>}
-                                        
+
                                         {publicCoupons.length > 0 && (
                                             <div style={{ display: 'grid', gap: '12px' }}>
                                                 {publicCoupons.map((coupon) => (

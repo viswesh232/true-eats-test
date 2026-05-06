@@ -69,7 +69,7 @@ const Checkout = () => {
         if (!user) { navigate('/login'); return; }
         if (!cartItems.length) { navigate('/'); return; }
 
-        API.get('/settings').then(({ data }) => setSettings(data)).catch(() => {});
+        API.get('/settings').then(({ data }) => setSettings(data)).catch(() => { });
         API.get(`/settings/user-discount/${user._id}`).then(({ data }) => setUserDiscount(data)).catch(() => setUserDiscount(null));
 
         API.get('/auth/profile').then(({ data }) => {
@@ -161,7 +161,11 @@ const Checkout = () => {
 
     const buildOrderPayload = (extra = {}) => ({
         orderItems: cartItems.map((item) => ({
-            name: item.name, qty: item.qty, image: (item.images && item.images[0]) || item.image || '', price: item.price, product: item._id,
+            name: item.weight ? `${item.name} (${item.weight})` : item.name,
+            qty: item.qty,
+            image: (item.images && item.images[0]) || item.image || '',
+            price: item.price,
+            product: item._id,
         })),
         totalPrice: total,
         shippingAddress: buildShippingAddress(),
@@ -277,7 +281,7 @@ const Checkout = () => {
             <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'flex', flexWrap: 'wrap' }}>
                 {/* Left Column (Forms) */}
                 <div style={{ flex: '1 1 500px', padding: 'clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px)' }}>
-                    
+
                     <section style={{ marginBottom: '40px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
                             <h2 style={{ fontSize: '20px', fontWeight: 800, margin: 0 }}>Contact</h2>
@@ -285,15 +289,15 @@ const Checkout = () => {
                         <div style={{ padding: '16px', borderRadius: '12px', border: `1px solid ${colors.border}`, backgroundColor: colors.surface }}>
                             <div style={{ fontWeight: 600, color: colors.ink }}>{user?.firstName} {user?.lastName}</div>
                             <div style={{ color: colors.muted, fontSize: '14px', marginTop: '4px' }}>{user?.email}</div>
-                            
+
                             <div style={{ marginTop: '16px' }}>
                                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: colors.muted, marginBottom: '6px' }}>Phone number *</label>
-                                <input 
+                                <input
                                     type="tel"
-                                    value={address.phone} 
-                                    onChange={(e) => setAddress({ ...address, phone: e.target.value })} 
-                                    style={{...inputStyle, backgroundColor: '#f9fafb'}} 
-                                    placeholder="Mobile number" 
+                                    value={address.phone}
+                                    onChange={(e) => setAddress({ ...address, phone: e.target.value })}
+                                    style={{ ...inputStyle, backgroundColor: '#f9fafb' }}
+                                    placeholder="Mobile number"
                                 />
                             </div>
                         </div>
@@ -327,14 +331,14 @@ const Checkout = () => {
                                 { id: 'Online', label: 'Pay online', sub: 'UPI, Cards, Net Banking', icon: <CreditCard size={20} /> },
                                 { id: 'COD', label: 'Cash on delivery', sub: codEnabled ? 'Pay when order arrives' : 'Unavailable', disabled: !codEnabled, icon: <MapPin size={20} /> },
                             ].map((method) => (
-                                <div key={method.id} onClick={() => !method.disabled && setPaymentMethod(method.id)} 
-                                     style={{ 
-                                         display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 20px', 
-                                         borderRadius: '12px', border: `1px solid ${selectedPaymentMethod === method.id ? colors.accent : colors.border}`, 
-                                         backgroundColor: selectedPaymentMethod === method.id ? colors.softAccent : colors.surface, 
-                                         cursor: method.disabled ? 'not-allowed' : 'pointer', opacity: method.disabled ? 0.5 : 1,
-                                         transition: 'all 0.2s'
-                                     }}>
+                                <div key={method.id} onClick={() => !method.disabled && setPaymentMethod(method.id)}
+                                    style={{
+                                        display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 20px',
+                                        borderRadius: '12px', border: `1px solid ${selectedPaymentMethod === method.id ? colors.accent : colors.border}`,
+                                        backgroundColor: selectedPaymentMethod === method.id ? colors.softAccent : colors.surface,
+                                        cursor: method.disabled ? 'not-allowed' : 'pointer', opacity: method.disabled ? 0.5 : 1,
+                                        transition: 'all 0.2s'
+                                    }}>
                                     <div style={{ color: selectedPaymentMethod === method.id ? colors.accent : colors.muted }}>{method.icon}</div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 700, color: colors.ink }}>{method.label}</div>
@@ -351,7 +355,7 @@ const Checkout = () => {
 
                 {/* Right Column (Summary & Items) */}
                 <aside style={{ flex: '1 1 400px', backgroundColor: colors.background, padding: 'clamp(24px, 5vw, 40px) clamp(16px, 4vw, 32px)', borderLeft: `1px solid ${colors.border}`, minHeight: 'calc(100vh - 73px)' }}>
-                    
+
                     {/* Items */}
                     <div style={{ marginBottom: '32px' }}>
                         {cartItems.map((item) => {
@@ -469,7 +473,7 @@ const Checkout = () => {
                     <button onClick={handlePay} disabled={loading} style={{ marginTop: '24px', width: '100%', padding: '18px', backgroundColor: loading ? colors.muted : colors.primary, color: '#fff', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(71, 43, 41, 0.2)' }}>
                         {loading ? 'Processing secure payment...' : `Pay ${formatPrice(total)}`}
                     </button>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '16px', color: colors.muted, fontSize: '12px' }}>
                         <Shield size={14} /> Encrypted and Secure
                     </div>
