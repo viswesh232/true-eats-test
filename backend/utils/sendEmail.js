@@ -2,6 +2,10 @@ const nodemailer = require('nodemailer');
 
 // 1. Create the Transporter
 // Using 'service: gmail' is recommended for Gmail to handle specific settings automatically
+if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.error('CRITICAL ERROR: EMAIL_USER or EMAIL_PASS is not defined in the environment variables!');
+}
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -97,6 +101,7 @@ const wrapTemplate = (content) => `
  * Generic Email Sender
  */
 const sendEmail = async (email, subject, text, html) => {
+    console.log(`[Email Service] Attempting to send email to: ${email}`);
     try {
         const mailOptions = {
             from: `"True Eats" <${process.env.EMAIL_USER}>`,
@@ -107,12 +112,19 @@ const sendEmail = async (email, subject, text, html) => {
         };
 
         const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent: %s', info.messageId);
+        console.log(`[Email Service] Email sent successfully! MessageID: ${info.messageId}`);
         return info;
     } catch (error) {
-        console.error('Email sending failed:', error);
+        console.error('--- NODEMAILER ERROR ---');
+        console.error(`To: ${email}`);
+        console.error(`Subject: ${subject}`);
+        console.error('Error Code:', error.code || 'N/A');
+        console.error('Error Message:', error.message);
+        if (error.stack) console.error('Stack Trace:', error.stack);
+        console.error('-----------------------');
+        
         // We throw the error so the controller can handle it if needed
-        throw new Error('Email service unavailable');
+        throw new Error(`Email sending failed: ${error.message}`);
     }
 };
 

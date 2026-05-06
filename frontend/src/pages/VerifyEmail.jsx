@@ -12,9 +12,13 @@ const VerifyEmail = () => {
   
   const [status, setStatus] = useState('loading'); // 'loading', 'success', or 'error'
   const [message, setMessage] = useState('');
+  const hasVerified = React.useRef(false);
 
   useEffect(() => {
     const verifyUserEmail = async () => {
+      if (hasVerified.current) return;
+      hasVerified.current = true;
+      
       try {
         // Calls your existing backend authController.verifyEmail [1, 2]
         const res = await API.get(`/auth/verify/${token}`); 

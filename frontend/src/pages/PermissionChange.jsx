@@ -31,7 +31,7 @@ const PermissionChange = () => {
     const handleDelete = async (userId) => {
         if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
             try {
-                await API.delete(`/admin/user/${userId}`); // We will add this backend route next!
+                await API.delete(`/admin/user/${userId}`);
                 fetchUsers();
             } catch { alert("Error deleting user"); }
         }

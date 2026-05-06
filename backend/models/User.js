@@ -28,13 +28,12 @@ const userSchema = new mongoose.Schema({
     },
 
     // Hidden admin accounts are still admins, but excluded from normal admin user listings
-    hiddenAdmin: { type: Boolean, default: false },
+    hiddenAdmin: { type: Boolean },
 
     // Flow: Email Verification status
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     
-    password: { type: String, required: true },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 
