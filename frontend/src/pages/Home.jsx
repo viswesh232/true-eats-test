@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import API from '../api/axios';
 import { AuthContext } from '../context/AuthContext';
@@ -51,7 +51,6 @@ export default function Home() {
 
     const queryParams = new URLSearchParams(location.search);
     const searchParam = queryParams.get('search') || '';
-    const scrollToMenuParam = queryParams.get('scrollToMenu') === 'true';
 
     const [searchTerm, setSearchTerm] = useState(searchParam);
     const [toast, setToast] = useState('');
@@ -84,14 +83,14 @@ export default function Home() {
         }
     }, [searchParam]);
 
-    useEffect(() => {
-        if (scrollToMenuParam) {
-            // Slight delay ensures the DOM is fully painted if we just routed from another page
-            setTimeout(() => {
-                document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-        }
-    }, [scrollToMenuParam]);
+    const menuRef = useRef(null);
+
+    const scrollMenu = () => {
+        const target = menuRef.current || document.getElementById('menu-section') || document.querySelector('.section-full');
+        if (!target) return;
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     useEffect(() => {
         (async () => {
@@ -148,7 +147,6 @@ export default function Home() {
         setModalImageIdx(0);
     };
 
-    const scrollMenu = () => document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth' });
     const curBanner = BANNERS[bannerIdx] || BANNERS[0];
 
     return (
@@ -227,7 +225,7 @@ export default function Home() {
             </div>
 
             {/* MENU */}
-            <div className="section-full" id="menu-section">
+            <div ref={menuRef} id="menu-section" className="section-full">
                 <div className="section-label">🛍️ Our Products</div>
                 <h2 className="section-title">Browse &amp; Order</h2>
                 <div className="cat-row">

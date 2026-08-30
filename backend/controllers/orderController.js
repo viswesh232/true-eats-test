@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Counter = require('../models/Counter');
+const User = require('../models/User');
 const { sendOrderUpdateEmail } = require('../utils/sendEmail');
 const crypto = require('crypto');
 const Settings = require('../models/Settings');
@@ -216,7 +217,7 @@ exports.createOrder = async (req, res) => {
             orderItems, shippingAddress,
             couponCode, customNote,
             razorpayOrderId, razorpayPaymentId, razorpaySignature,
-            paymentMethod
+            paymentMethod, addressInfo
         } = req.body;
 
         if (!orderItems || orderItems.length === 0) {
@@ -301,6 +302,36 @@ exports.createOrder = async (req, res) => {
         });
 
         const createdOrder = await order.save();
+
+        const normalizedAddress = addressInfo || {
+            firstName: req.user?.firstName || '',
+            lastName: req.user?.lastName || '',
+            doorNo: '',
+            colony: '',
+            city: '',
+            state: '',
+            pincode: '',
+            phone: req.user?.phoneNumber || '',
+        };
+
+        if (normalizedAddress && (normalizedAddress.doorNo || normalizedAddress.colony || normalizedAddress.city || normalizedAddress.pincode || normalizedAddress.state || normalizedAddress.phone)) {
+            await User.findByIdAndUpdate(req.user._id, {
+                $set: {
+                    firstName: normalizedAddress.firstName || req.user?.firstName || '',
+                    lastName: normalizedAddress.lastName || req.user?.lastName || '',
+                    phoneNumber: normalizedAddress.phone || req.user?.phoneNumber || '',
+                    address: {
+                        doorNo: normalizedAddress.doorNo || '',
+                        colony: normalizedAddress.colony || '',
+                        city: normalizedAddress.city || '',
+                        state: normalizedAddress.state || '',
+                        pincode: normalizedAddress.pincode || '',
+                        country: 'India',
+                    },
+                }
+            });
+        }
+
         res.status(201).json(createdOrder);
     } catch (error) {
         console.error('Create order error:', error);
@@ -400,7 +431,7 @@ exports.updateOrderStatus = async (req, res) => {
 exports.updateDeliveryInfo = async (req, res) => {
     try {
         const { trackingId, courierName, customNote } = req.body;
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findById(req.params.id).populate('user', 'firstName lastName email');
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
         order.trackingId  = trackingId || order.trackingId;
@@ -410,7 +441,22 @@ exports.updateDeliveryInfo = async (req, res) => {
         order.shippedAt   = new Date();
 
         await order.save();
-        res.json({ message: 'Delivery info updated', order });
+
+        const message = customNote || `Your order has been dispatched and is on the way. Tracking ID: ${order.trackingId || 'N/A'}`;
+        const emailResult = await sendOrderUpdateEmail(order.user?.email, {
+            customerName: order.user?.firstName || 'Customer',
+            orderId: order.orderId,
+            message,
+            trackingId: order.trackingId,
+            courierName: order.courierName,
+        });
+
+        res.json({
+            message: 'Delivery info updated',
+            order,
+            emailSent: emailResult?.success !== false,
+            emailSkipped: emailResult?.skipped === true,
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -442,7 +488,8 @@ exports.sendOrderUpdate = async (req, res) => {
     try {
         const { message, trackingId, courierName } = req.body;
         if (!message) return res.status(400).json({ message: 'Message is required' });
-        const order = await Order.findById(req.params.id)
+
+        const order = await Order.findById(req.params.id)
             .populate('user', 'firstName lastName email');
         if (!order) return res.status(404).json({ message: 'Order not found' });
 

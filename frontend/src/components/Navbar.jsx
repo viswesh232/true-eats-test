@@ -1,5 +1,5 @@
 import React, { useContext, useState, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import { ShoppingCart, Search, User, Menu, X } from 'lucide-react';
@@ -18,6 +18,7 @@ const c = {
 
 const Navbar = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, logout } = useContext(AuthContext);
     const { cartItems, addToCart, removeFromCart } = useContext(CartContext);
 
@@ -48,6 +49,22 @@ const Navbar = () => {
 
     const totalCartQty = cartItems.reduce((acc, item) => acc + item.qty, 0);
     const subtotal = useMemo(() => cartItems.reduce((acc, item) => acc + item.price * item.qty, 0), [cartItems]);
+
+    const goToMenu = () => {
+        if (location.pathname === '/') {
+            setTimeout(() => {
+                const target = document.getElementById('menu-section');
+                target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 50);
+            return;
+        }
+
+        navigate('/');
+        setTimeout(() => {
+            const target = document.getElementById('menu-section');
+            target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 350);
+    };
 
     return (
         <>
@@ -91,7 +108,7 @@ const Navbar = () => {
                         </div>
 
                         <div className="nav-links" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                            <button onClick={() => navigate('/?scrollToMenu=true')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Menu</button>
+                            <button onClick={goToMenu} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Menu</button>
                             <button onClick={() => navigate('/our-story')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Our Story</button>
                             <button onClick={() => navigate('/orders')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>My Orders</button>
                             <button onClick={() => navigate('/support')} style={{ background: 'none', border: 'none', color: c.forest, fontWeight: '700', fontSize: '15px', cursor: 'pointer' }}>Support</button>
@@ -191,7 +208,7 @@ const Navbar = () => {
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontSize: '18px', fontWeight: '700', color: c.forest }}>
-                            <div onClick={() => { navigate('/?scrollToMenu=true'); setIsMenuOpen(false); }}>Menu</div>
+                            <div onClick={() => { goToMenu(); setIsMenuOpen(false); }}>Menu</div>
                             <div onClick={() => { navigate('/our-story'); setIsMenuOpen(false); }}>Our Story</div>
                             <div onClick={() => { navigate('/orders'); setIsMenuOpen(false); }}>My Orders</div>
                             <div onClick={() => { navigate('/support'); setIsMenuOpen(false); }}>Support</div>

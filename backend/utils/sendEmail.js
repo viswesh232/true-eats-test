@@ -1,27 +1,31 @@
+require('dotenv').config();
 const nodemailer = require('nodemailer');
 
-// 1. Create the Transporter
-// Using 'service: gmail' is recommended for Gmail to handle specific settings automatically
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.error('CRITICAL ERROR: EMAIL_USER or EMAIL_PASS is not defined in the environment variables!');
+const emailUser = process.env.EMAIL_USER || '';
+const emailPass = process.env.EMAIL_PASS || '';
+const hasEmailCredentials = Boolean(emailUser && emailPass);
+
+if (!hasEmailCredentials) {
+    console.warn('Email credentials are missing; email sending will be skipped until EMAIL_USER and EMAIL_PASS are configured.');
 }
 
-const transporter = nodemailer.createTransport({
+const transporter = hasEmailCredentials ? nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: emailUser,
+        pass: emailPass,
     },
-});
+}) : null;
 
-// Verify connection configuration
-transporter.verify((error, success) => {
-    if (error) {
-        console.error('SMTP Connection Error:', error);
-    } else {
-        console.log('SMTP Server is ready to take our messages');
-    }
-});
+if (transporter) {
+    transporter.verify((error, success) => {
+        if (error) {
+            console.error('SMTP Connection Error:', error);
+        } else {
+            console.log('SMTP Server is ready to take our messages');
+        }
+    });
+}
 
 /**
  * Standard Email Wrapper for True Eats
@@ -102,9 +106,15 @@ const wrapTemplate = (content) => `
  */
 const sendEmail = async (email, subject, text, html) => {
     console.log(`[Email Service] Attempting to send email to: ${email}`);
+
+    if (!transporter || !hasEmailCredentials) {
+        console.warn(`[Email Service] Skipping email to ${email} because credentials are not configured.`);
+        return { success: false, skipped: true, error: 'Email credentials are not configured.' };
+    }
+
     try {
         const mailOptions = {
-            from: `"True Eats" <${process.env.EMAIL_USER}>`,
+            from: `"True Eats" <${emailUser}>`,
             to: email,
             subject: subject,
             text: text,
@@ -113,7 +123,7 @@ const sendEmail = async (email, subject, text, html) => {
 
         const info = await transporter.sendMail(mailOptions);
         console.log(`[Email Service] SUCCESS: Email sent to ${email}. MessageID: ${info.messageId}`);
-        return info;
+        return { success: true, info };
     } catch (error) {
         console.error('--- NODEMAILER ERROR ---');
         console.error(`To: ${email}`);
@@ -122,9 +132,8 @@ const sendEmail = async (email, subject, text, html) => {
         console.error('Error Message:', error.message);
         if (error.stack) console.error('Stack Trace:', error.stack);
         console.error('-----------------------');
-        
-        // We throw the error so the controller can handle it if needed
-        throw new Error(`Email sending failed: ${error.message}`);
+
+        return { success: false, error: error.message };
     }
 };
 

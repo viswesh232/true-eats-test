@@ -1,5 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from './context/AuthContext';
 import ChatBot from './components/ChatBot';
 
@@ -51,9 +51,22 @@ const ProtectedRoute = ({ children }) => {
     return children;
 };
 
+const ScrollToTop = () => {
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+    }, [pathname]);
+
+    return null;
+};
+
 function App() {
     return (
         <Router>
+            <ScrollToTop />
             <Routes>
                 {/* Public & Customer Routes wrapped in Layout */}
                 <Route element={<CustomerLayout><Outlet /></CustomerLayout>}>

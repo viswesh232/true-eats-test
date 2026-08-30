@@ -52,7 +52,7 @@ const Orders = () => {
 
     const filtered = filter === 'all' ? orders
         : filter === 'active' ? orders.filter(o => !['Delivered', 'Cancelled'].includes(o.status))
-            : filter === 'failed' ? orders.filter(o => o.paymentStatus === 'Failed' || o.status === 'Pending Payment')
+            : filter === 'failed' ? orders.filter(o => o.paymentStatus === 'Failed' || (o.status === 'Pending Payment' && o.paymentStatus !== 'Failed'))
                 : orders.filter(o => o.status === filter);
 
     const handleCancelOrder = async (orderId) => {
@@ -123,7 +123,7 @@ const Orders = () => {
                             const ps = PAY_STATUS[order.paymentStatus] || PAY_STATUS['Pending'];
                             const StatusIcon = st.icon;
                             const isFailedPayment = order.paymentStatus === 'Failed';
-                            const isPendingPayment = order.status === 'Pending Payment';
+                            const isPendingPayment = order.status === 'Pending Payment' && !isFailedPayment;
 
                             return (
                                 <div key={order._id} style={{
@@ -141,13 +141,15 @@ const Orders = () => {
                                                 </div>
                                                 <div style={{ fontSize: '12px', color: '#ef4444', marginTop: '2px' }}>
                                                     {isFailedPayment
-                                                        ? 'Your payment was not completed. No amount was charged. You can try placing the order again.'
+                                                        ? 'Your payment was not completed. No amount was charged.'
                                                         : 'Your payment is being processed or was not completed. Contact support if you were charged.'}
                                                 </div>
                                             </div>
-                                            <button onClick={() => navigate('/checkout')} style={{ marginLeft: 'auto', flexShrink: 0, padding: '7px 14px', background: '#b91c1c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                                <RotateCcw size={13} /> Try Again
-                                            </button>
+                                            {!isFailedPayment && (
+                                                <button onClick={() => navigate('/checkout')} style={{ marginLeft: 'auto', flexShrink: 0, padding: '7px 14px', background: '#b91c1c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                                    <RotateCcw size={13} /> Try Again
+                                                </button>
+                                            )}
                                         </div>
                                     )}
 
