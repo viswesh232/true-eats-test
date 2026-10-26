@@ -42,8 +42,9 @@ exports.registerUser = async (req, res) => {
       const clientUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
 
-      // Send verification email using the specialized utility
-      await sendVerificationEmail(user.email, verifyUrl);
+      // Send verification email in the background without blocking the response
+      sendVerificationEmail(user.email, verifyUrl)
+        .catch(err => console.error('Signup verification email error:', err));
 
       return res.status(201).json({
         message: 'Signup successful. Please check your email to verify your account.',
@@ -187,8 +188,9 @@ exports.forgotPassword = async (req, res) => {
     // Send the email using your existing utility
     const clientUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const resetUrl = `${clientUrl}/reset-password/${resetToken}`;
-    // Send the password reset email using the specialized utility
-    await sendPasswordResetEmail(user.email, resetUrl);
+    // Send the password reset email in the background without blocking the response
+    sendPasswordResetEmail(user.email, resetUrl)
+      .catch(err => console.error('Password reset email error:', err));
 
     res.json({ message: 'Password reset link sent to your email!' });
   } catch (error) {

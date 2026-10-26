@@ -238,11 +238,159 @@ const sendPasswordResetEmail = async (email, resetUrl) => {
     return sendEmail(email, 'True Eats - Password Reset Request', 'Reset your password', html);
 };
 
+/**
+ * Order Confirmation Email (Success)
+ */
+const sendOrderConfirmationEmail = async (email, { customerName, orderId, orderItems, shippingAddress, totalPrice, paymentMethod, paymentStatus }) => {
+    const itemsHtml = orderItems.map(item => `
+        <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 12px; color: #1f2937; text-align: left;">${item.name}</td>
+            <td style="padding: 12px; color: #1f2937; text-align: center;">x ${item.qty}</td>
+            <td style="padding: 12px; color: #1f2937; text-align: right;">Rs. ${Math.round(item.price * item.qty)}</td>
+        </tr>
+    `).join('');
+
+    const statusBadgeColor = paymentStatus === 'Paid' ? '#059669' : '#f59e0b';
+    const statusBadgeText = paymentStatus === 'Paid' ? 'PAID' : 'PENDING';
+
+    const html = wrapTemplate(`
+        <h2 style="color: #1a4331; margin-top: 0;">Order Confirmed!</h2>
+        <p>Hi ${customerName},</p>
+        <p>Thank you for your order! We're excited to prepare your delicious meal.</p>
+        
+        <div style="background: #f0fdf4; border-left: 4px solid #1a4331; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 18px; font-weight: bold; color: #1a4331;">Order ID: ${orderId}</p>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #64748b;">Placed on ${new Date().toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+
+        <h3 style="color: #1a4331; margin-top: 25px;">Order Items</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
+            <thead>
+                <tr style="background: #f3f4f6;">
+                    <th style="padding: 12px; color: #1a4331; text-align: left; font-weight: 600;">Item</th>
+                    <th style="padding: 12px; color: #1a4331; text-align: center; font-weight: 600;">Qty</th>
+                    <th style="padding: 12px; color: #1a4331; text-align: right; font-weight: 600;">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${itemsHtml}
+            </tbody>
+        </table>
+
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 8px 0; display: flex; justify-content: space-between; color: #1f2937;">
+                <span>Subtotal:</span>
+                <span>Rs. ${Math.round(totalPrice * 0.85)}</span>
+            </p>
+            <p style="margin: 8px 0; display: flex; justify-content: space-between; color: #1f2937; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
+                <span>Delivery & Fees:</span>
+                <span>Rs. ${Math.round(totalPrice * 0.15)}</span>
+            </p>
+            <p style="margin: 8px 0; display: flex; justify-content: space-between; color: #1a4331; font-weight: bold; font-size: 16px;">
+                <span>Total:</span>
+                <span>Rs. ${Math.round(totalPrice)}</span>
+            </p>
+        </div>
+
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Delivery Address</p>
+            <p style="margin: 10px 0 0; color: #1f2937; line-height: 1.6;">${shippingAddress}</p>
+        </div>
+
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p style="margin: 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Payment Method</p>
+                <p style="margin: 5px 0 0; color: #1f2937; font-weight: 600;">${paymentMethod}</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="margin: 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Payment Status</p>
+                <p style="margin: 5px 0 0; padding: 4px 12px; background: ${statusBadgeColor}; color: white; border-radius: 4px; font-weight: 600; font-size: 12px;">${statusBadgeText}</p>
+            </div>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; margin-top: 25px;">
+            You can track your order status in the True Eats app. We'll send you updates as your order is being prepared and dispatched.
+        </p>
+        <p style="color: #1a4331; font-weight: 600;">Thank you for choosing True Eats! 🌿</p>
+    `);
+
+    return sendEmail(email, `Order Confirmed - ${orderId}`, `Your order ${orderId} has been received!`, html);
+};
+
+/**
+ * Order Payment Failed Email
+ */
+const sendOrderPaymentFailedEmail = async (email, { customerName, orderId, totalPrice, shippingAddress }) => {
+    const html = wrapTemplate(`
+        <h2 style="color: #dc2626; margin-top: 0;">Payment Failed</h2>
+        <p>Hi ${customerName},</p>
+        <p>Unfortunately, your payment could not be processed. Your order has been created but payment is still <strong>PENDING</strong>.</p>
+        
+        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 16px; font-weight: bold; color: #7f1d1d;">Order ID: ${orderId}</p>
+            <p style="margin: 5px 0 0; font-size: 14px; color: #6b7280;">Amount: Rs. ${Math.round(totalPrice)}</p>
+        </div>
+
+        <h3 style="color: #1a4331; margin-top: 25px;">What happens next?</h3>
+        <p>Your order is on hold waiting for payment confirmation. You have two options:</p>
+        <ol style="color: #1f2937; line-height: 1.8;">
+            <li><strong>Retry Payment:</strong> Log in to True Eats and complete the payment for this order.</li>
+            <li><strong>Pay on Delivery:</strong> Contact us at support@trueeats.com to switch to Cash on Delivery (if available).</li>
+        </ol>
+
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Delivery Address</p>
+            <p style="margin: 10px 0 0; color: #1f2937; line-height: 1.6;">${shippingAddress}</p>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px; margin-top: 25px;">
+            If you believe this is a mistake or need help, please contact our support team immediately.
+        </p>
+        <p style="color: #1a4331; font-weight: 600;">We're here to help! 🌿</p>
+    `);
+
+    return sendEmail(email, `Payment Failed - ${orderId}`, `Payment issue for order ${orderId}`, html);
+};
+
+/**
+ * Order Cancelled Email
+ */
+const sendOrderCancelledEmail = async (email, { customerName, orderId, reason }) => {
+    const html = wrapTemplate(`
+        <h2 style="color: #dc2626; margin-top: 0;">Order Cancelled</h2>
+        <p>Hi ${customerName},</p>
+        <p>Your order <strong>${orderId}</strong> has been cancelled.</p>
+        
+        <div style="background: #fef2f2; border-left: 4px solid #dc2626; padding: 15px; margin: 20px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 16px; font-weight: bold; color: #7f1d1d;">Order ID: ${orderId}</p>
+            ${reason ? `<p style="margin: 10px 0 0; color: #6b7280;"><strong>Reason:</strong> ${reason}</p>` : ''}
+        </div>
+
+        <h3 style="color: #1a4331; margin-top: 25px;">What happens next?</h3>
+        ${reason && reason.includes('Payment') ? `
+            <p>Your payment will not be charged. If you believe this is a mistake, please contact our support team.</p>
+        ` : `
+            <p>Your order has been cancelled and removed from our system. If you placed an online payment, it will be refunded to your account within 3-5 business days.</p>
+        `}
+
+        <h3 style="color: #1a4331; margin-top: 25px;">Need Help?</h3>
+        <p>If you'd like to place a new order or have any questions, feel free to reach out to us at:</p>
+        <p style="color: #1a4331; font-weight: 600;">support@trueeats.com</p>
+
+        <p style="color: #1a4331; font-weight: 600; margin-top: 25px;">We hope to serve you again! 🌿</p>
+    `);
+
+    return sendEmail(email, `Order Cancelled - ${orderId}`, `Your order ${orderId} has been cancelled`, html);
+};
+
 // Export all functions as an object
 module.exports = {
     sendEmail,
     sendVerificationEmail,
     sendOrderUpdateEmail,
+    sendOrderConfirmationEmail,
+    sendOrderPaymentFailedEmail,
+    sendOrderCancelledEmail,
     sendCouponEmail,
     sendAdminMessageEmail,
     sendPasswordResetEmail,

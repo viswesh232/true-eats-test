@@ -1,0 +1,245 @@
+﻿node.exe : npm notice run frontend@0.0.0 npx
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\lenovo\AppData\Roaming ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run frontend@0.0.0 npx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+npm notice run eslint src/
+
+E:\true-eats - Copy (3)\frontend\src\components\CartDrawer.jsx
+  33:13  error  'user' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\components\ChatBot.jsx
+  129:11   error  'audioRef' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            no-unused-vars
+  135:17   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  133 |         if (!messages) {
+  134 |             if (userName) {
+> 135 |                 setMessages([{
+      |                 ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  136 |                     from: 'bot', type: 'text',
+  137 |                     text: `≡ƒæï Welcome back, **${userName}**! Great to see you again at True Eats ≡ƒî┐ How can I help you today?`,
+  138 |                     time: ts(), chips: DEFAULT_CHIPS,  react-hooks/set-state-in-effect
+  154:99   error  Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-empty
+  164:13   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  162 |     useEffect(() => {
+  163 |         if (open && !minimized) {
+> 164 |             setUnread(0);
+      |             ^^^^^^^^^ Avoid calling setState() directly within an effect
+  165 |             setTimeout(() => inputRef.current?.focus(), 300);
+  166 |         }
+  167 |     }, [open, minimized]);                                                                                                                                            react-hooks/set-state-in-effect
+  178:11   error  'playSound' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  180:141  error  Empty block statement                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-empty
+  232:66   error  Unnecessary escape character: \'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    no-useless-escape
+
+E:\true-eats - Copy (3)\frontend\src\components\Footer.jsx
+  25:65  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+  23 |                     </p>
+  24 |                     <div style={{ display: 'flex', gap: '16px' }}>
+> 25 |                         <a href="#" style={{ color: c.peach }}><IconInsta /></a>
+     |                                                                 ^^^^^^^^^ This component is created during render
+  26 |                         <a href="#" style={{ color: c.peach }}><IconFb /></a>
+  27 |                         <a href="#" style={{ color: c.peach }}><IconTwit /></a>
+  28 |                     </div>
+
+   7 |     const c = { forest: '#1a4331', peach: '#fcd5ce', chocolate: '#4a2c2a' };
+   8 |
+>  9 |     const IconInsta = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>;
+     |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The component is created during render here
+  10 |     const IconFb = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>;
+  11 |     const IconTwit = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>;
+  12 |         react-hooks/static-components
+  26:65  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+  24 |                     <div style={{ display: 'flex', gap: '16px' }}>
+  25 |                         <a href="#" style={{ color: c.peach }}><IconInsta /></a>
+> 26 |                         <a href="#" style={{ color: c.peach }}><IconFb /></a>
+     |                                                                 ^^^^^^ This component is created during render
+  27 |                         <a href="#" style={{ color: c.peach }}><IconTwit /></a>
+  28 |                     </div>
+  29 |                 </div>
+
+   8 |
+   9 |     const IconInsta = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>;
+> 10 |     const IconFb = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>;
+     |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The component is created during render here
+  11 |     const IconTwit = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>;
+  12 |
+  13 |     return (                                                                                                                                                                                 react-hooks/static-components
+  27:65  error  Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+  25 |                         <a href="#" style={{ color: c.peach }}><IconInsta /></a>
+  26 |                         <a href="#" style={{ color: c.peach }}><IconFb /></a>
+> 27 |                         <a href="#" style={{ color: c.peach }}><IconTwit /></a>
+     |                                                                 ^^^^^^^^ This component is created during render
+  28 |                     </div>
+  29 |                 </div>
+  30 |
+
+   9 |     const IconInsta = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>;
+  10 |     const IconFb = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg>;
+> 11 |     const IconTwit = () => <svg width="20" height="20" viewBox="0:0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg>;
+     |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ The component is created during render here
+  12 |
+  13 |     return (
+  14 |         <footer style={{ backgroundColor: c.forest, color: '#fff', padding: '60px 40px 30px', fontFamily: "'Inter', sans-serif" }}>  react-hooks/static-components
+
+E:\true-eats - Copy (3)\frontend\src\components\Navbar.jsx
+  23:24  error    'addToCart' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u           no-unused-vars
+  23:35  error    'removeFromCart' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u      no-unused-vars
+  42:13  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  45:13  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  51:11  error    'subtotal' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u            no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\Cart.jsx
+  43:12  error  'showCoupons' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\Checkout.jsx
+   35:24  error  'clearCart' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 no-unused-vars
+  106:31  error  'addr' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      no-unused-vars
+  178:17  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  176 |         if (couponResult?.coupon) {
+  177 |             if (couponResult.coupon.minOrder > 0 && subtotal < couponResult.coupon.minOrder) {
+> 178 |                 setCouponError(`Minimum order of ${formatPrice(couponResult.coupon.minOrder)} required`);
+      |                 ^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  179 |                 setCouponResult(null);
+  180 |                 setCouponCode('');
+  181 |             } else {  react-hooks/set-state-in-effect
+  286:30  error  'err' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\ContactUs.jsx
+  19:19  error  'response' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\EditMenu.jsx
+  188:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  186 |
+  187 |     useEffect(() => {
+> 188 |         fetchProducts();
+      |         ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  189 |     }, []);
+  190 |
+  191 |     const handleSubmit = async (e) => {  react-hooks/set-state-in-effect
+
+E:\true-eats - Copy (3)\frontend\src\pages\Home.jsx
+    7:8   error  'heroImage' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         no-unused-vars
+  124:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  122 |     useEffect(() => {
+  123 |         if (announcementIdx >= announcements.length) {
+> 124 |             setAnnouncementIdx(0);
+      |             ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  125 |         }
+  126 |     }, [announcements.length, announcementIdx]);
+  127 |  react-hooks/set-state-in-effect
+  135:11  error  'backendUrl' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               no-unused-vars
+  150:11  error  'curBanner' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\LiveOrders.jsx
+  22:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  20 |
+  21 |     useEffect(() => {
+> 22 |         fetchOrders();
+     |         ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  23 |         const interval = setInterval(fetchOrders, 6000);
+  24 |         return () => clearInterval(interval);
+  25 |     }, []);  react-hooks/set-state-in-effect
+
+E:\true-eats - Copy (3)\frontend\src\pages\Login.jsx
+  23:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  21 |         const queryParams = new URLSearchParams(location.search);
+  22 |         if (queryParams.get('verified') === 'true') {
+> 23 |             setSuccessMessage('Email verified successfully! You can now log in.');
+     |             ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  24 |         }
+  25 |     }, [location]);
+  26 |  react-hooks/set-state-in-effect
+
+E:\true-eats - Copy (3)\frontend\src\pages\PaymentDetail.jsx
+  38:33  error  'Icon' is defined but never used                                                          no-unused-vars
+  58:11  error  'printRef' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\PaymentsPage.jsx
+   26:22  error  'useRef' is not defined                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       no-undef
+  179:23  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  177 |     };
+  178 |
+> 179 |     useEffect(() => { load(); }, []);
+      |                       ^^^^ Avoid calling setState() directly within an effect
+  180 |
+  181 |     const confirmPayment = async (id) => {
+  182 |         if (!window.confirm('Mark this payment as PAID manually?')) return;  react-hooks/set-state-in-effect
+  227:40  error  'Icon' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\ProductPage.jsx
+  169:11  error  'totalCartQty' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\true-eats - Copy (3)\frontend\src\pages\ReachOut.jsx
+   94:18  error  'error' is defined but never used  no-unused-vars
+  108:18  error  'error' is defined but never used  no-unused-vars
+
+Γ£û 37 problems (35 errors, 2 warnings)
+  0 errors and 2 warnings potentially fixable with the `--fix` option.
+

@@ -130,14 +130,15 @@ exports.sendCouponToUser = async (req, res) => {
             ? `${coupon.value}% off your order${coupon.minOrder ? ` (min. Rs. ${coupon.minOrder})` : ''}`
             : `Rs. ${coupon.value} off your order${coupon.minOrder ? ` (min. Rs. ${coupon.minOrder})` : ''}`;
 
-        await sendCouponEmail(user.email, {
+        // Send coupon email in the background without blocking the response
+        sendCouponEmail(user.email, {
             customerName: user.firstName,
             couponCode: coupon.code,
             discountText,
             message: message || coupon.desc,
-        });
+        }).catch(err => console.error('Coupon email error:', err));
 
-        res.json({ message: `Coupon sent to ${user.email}` });
+        res.json({ message: `Coupon will be sent to ${user.email}` });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -153,13 +154,14 @@ exports.sendMailToUser = async (req, res) => {
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        await sendAdminMessageEmail(user.email, {
+        // Send admin message email in the background without blocking the response
+        sendAdminMessageEmail(user.email, {
             customerName: user.firstName,
             subject,
             message,
-        });
+        }).catch(err => console.error('Admin message email error:', err));
 
-        res.json({ message: `Email sent to ${user.email}` });
+        res.json({ message: `Email will be sent to ${user.email}` });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

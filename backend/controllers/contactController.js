@@ -20,12 +20,12 @@ exports.createContact = async (req, res) => {
 
         await contact.save();
 
-        // Send confirmation email to user
-        await sendEmail(
+        // Send confirmation email to user in the background without blocking the response
+        sendEmail(
             email,
             'We received your message - True Eats',
             `Hi ${name},\n\nThank you for reaching out to True Eats! We have received your message and will get back to you within 24 hours.\n\nYour Message:\n${message}\n\nBest regards,\nTrue Eats Team`
-        );
+        ).catch(err => console.error('Contact confirmation email error:', err));
 
         res.status(201).json({ message: 'Message received! We will reply soon.', contact });
     } catch (error) {
@@ -82,12 +82,12 @@ exports.sendReply = async (req, res) => {
             return res.status(404).json({ message: 'Contact not found' });
         }
 
-        // Send email to customer
-        await sendAdminMessageEmail(contact.email, {
+        // Send email to customer in the background without blocking the response
+        sendAdminMessageEmail(contact.email, {
             customerName: contact.name,
             subject: `Re: ${contact.subject || contact.name} - True Eats`,
             message: adminReply,
-        });
+        }).catch(err => console.error('Admin message email error:', err));
 
         // Update contact record
         contact.adminReply = adminReply;

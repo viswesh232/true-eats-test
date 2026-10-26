@@ -72,30 +72,94 @@ const Checkout = () => {
         API.get('/settings').then(({ data }) => setSettings(data)).catch(() => { });
         API.get(`/settings/user-discount/${user._id}`).then(({ data }) => setUserDiscount(data)).catch(() => setUserDiscount(null));
 
+        // First, try to get address from user profile
         API.get('/auth/profile').then(({ data }) => {
-            if (data?.address) {
+            if (data?.address && (data.address.doorNo || data.address.colony || data.address.city || data.address.state || data.address.pincode)) {
+                // Address exists in profile, use it
                 setAddress({
-                    firstName: data.firstName || '', lastName: data.lastName || '',
-                    doorNo: data.address.doorNo || '', colony: data.address.colony || '',
-                    city: data.address.city || '', state: data.address.state || '', pincode: data.address.pincode || '',
-                    phone: data.phoneNumber || '',
+                    firstName: data.firstName || user.firstName || '',
+                    lastName: data.lastName || user.lastName || '',
+                    doorNo: data.address.doorNo || '',
+                    colony: data.address.colony || '',
+                    city: data.address.city || '',
+                    state: data.address.state || '',
+                    pincode: data.address.pincode || '',
+                    phone: data.phoneNumber || user.phoneNumber || '',
                 });
-                return;
-            }
-            return API.get('/orders/myorders').then(({ data: orders }) => {
-                if (orders.length > 0 && orders[0].shippingAddress) {
-                    const parts = orders[0].shippingAddress.split(',');
-                    setAddress({
-                        firstName: user.firstName || '', lastName: user.lastName || '',
-                        doorNo: parts[0]?.trim() || '', colony: parts[1]?.trim() || '',
-                        city: parts[2]?.replace(/- \d+/, '')?.trim() || '', state: '', pincode: orders[0].shippingAddress.match(/\d{6}/)?.[0] || '',
+            } else {
+                // No address in profile, try to get from previous orders
+                return API.get('/orders/myorders').then(({ data: orders }) => {
+                    if (orders.length > 0 && orders[0].addressInfo) {
+                        // Use structured address info if available
+                        setAddress({
+                            firstName: orders[0].addressInfo.firstName || user.firstName || '',
+                            lastName: orders[0].addressInfo.lastName || user.lastName || '',
+                            doorNo: orders[0].addressInfo.doorNo || '',
+                            colony: orders[0].addressInfo.colony || '',
+                            city: orders[0].addressInfo.city || '',
+                            state: orders[0].addressInfo.state || '',
+                            pincode: orders[0].addressInfo.pincode || '',
+                            phone: orders[0].addressInfo.phone || user.phoneNumber || '',
+                        });
+                    } else if (orders.length > 0 && orders[0].shippingAddress) {
+                        // Fall back to parsing shippingAddress string
+                        const addr = orders[0].shippingAddress;
+                        setAddress(prev => ({
+                            ...prev,
+                            firstName: user.firstName || '',
+                            lastName: user.lastName || '',
+                            phone: user.phoneNumber || '',
+                        }));
+                    } else {
+                        // No previous orders, just set user details
+                        setAddress(prev => ({
+                            ...prev,
+                            firstName: user.firstName || '',
+                            lastName: user.lastName || '',
+                            phone: user.phoneNumber || '',
+                        }));
+                    }
+                }).catch(() => {
+                    // On error, just set user details
+                    setAddress(prev => ({
+                        ...prev,
+                        firstName: user.firstName || '',
+                        lastName: user.lastName || '',
                         phone: user.phoneNumber || '',
+                    }));
+                });
+            }
+        }).catch(() => {
+            // On error fetching profile, try orders
+            API.get('/orders/myorders').then(({ data: orders }) => {
+                if (orders.length > 0 && orders[0].addressInfo) {
+                    setAddress({
+                        firstName: orders[0].addressInfo.firstName || user.firstName || '',
+                        lastName: orders[0].addressInfo.lastName || user.lastName || '',
+                        doorNo: orders[0].addressInfo.doorNo || '',
+                        colony: orders[0].addressInfo.colony || '',
+                        city: orders[0].addressInfo.city || '',
+                        state: orders[0].addressInfo.state || '',
+                        pincode: orders[0].addressInfo.pincode || '',
+                        phone: orders[0].addressInfo.phone || user.phoneNumber || '',
                     });
                 } else {
-                    setAddress(prev => ({ ...prev, firstName: user.firstName || '', lastName: user.lastName || '', phone: user.phoneNumber || '' }));
+                    setAddress(prev => ({
+                        ...prev,
+                        firstName: user.firstName || '',
+                        lastName: user.lastName || '',
+                        phone: user.phoneNumber || '',
+                    }));
                 }
+            }).catch(() => {
+                setAddress(prev => ({
+                    ...prev,
+                    firstName: user.firstName || '',
+                    lastName: user.lastName || '',
+                    phone: user.phoneNumber || '',
+                }));
             });
-        }).catch(() => null);
+        });
     }, [cartItems.length, navigate, user]);
 
     const subtotal = useMemo(() => cartItems.reduce((acc, item) => acc + item.price * item.qty, 0), [cartItems]);

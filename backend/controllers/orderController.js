@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Counter = require('../models/Counter');
 const User = require('../models/User');
-const { sendOrderUpdateEmail } = require('../utils/sendEmail');
+const { sendOrderUpdateEmail, sendOrderConfirmationEmail, sendOrderPaymentFailedEmail, sendOrderCancelledEmail } = require('../utils/sendEmail');
 const crypto = require('crypto');
 const Settings = require('../models/Settings');
 
@@ -332,6 +332,38 @@ exports.createOrder = async (req, res) => {
             });
         }
 
+        // Send order confirmation email in the background
+        if (paymentStatus === 'Paid') {
+            sendOrderConfirmationEmail(req.user.email, {
+                customerName: req.user.firstName || 'Customer',
+                orderId: createdOrder.orderId,
+                orderItems: createdOrder.orderItems,
+                shippingAddress: createdOrder.shippingAddress,
+                totalPrice: createdOrder.totalPrice,
+                paymentMethod: createdOrder.paymentMethod,
+                paymentStatus: createdOrder.paymentStatus,
+            }).catch(err => console.error('Order confirmation email error:', err));
+        } else if (paymentStatus === 'Pending' && paymentMethod !== 'COD') {
+            // Payment failed for online payment
+            sendOrderPaymentFailedEmail(req.user.email, {
+                customerName: req.user.firstName || 'Customer',
+                orderId: createdOrder.orderId,
+                totalPrice: createdOrder.totalPrice,
+                shippingAddress: createdOrder.shippingAddress,
+            }).catch(err => console.error('Payment failed email error:', err));
+        } else if (paymentMethod === 'COD') {
+            // COD order confirmation
+            sendOrderConfirmationEmail(req.user.email, {
+                customerName: req.user.firstName || 'Customer',
+                orderId: createdOrder.orderId,
+                orderItems: createdOrder.orderItems,
+                shippingAddress: createdOrder.shippingAddress,
+                totalPrice: createdOrder.totalPrice,
+                paymentMethod: createdOrder.paymentMethod,
+                paymentStatus: 'PENDING',
+            }).catch(err => console.error('Order confirmation email error:', err));
+        }
+
         res.status(201).json(createdOrder);
     } catch (error) {
         console.error('Create order error:', error);
@@ -443,19 +475,20 @@ exports.updateDeliveryInfo = async (req, res) => {
         await order.save();
 
         const message = customNote || `Your order has been dispatched and is on the way. Tracking ID: ${order.trackingId || 'N/A'}`;
-        const emailResult = await sendOrderUpdateEmail(order.user?.email, {
+        
+        // Send email in the background without blocking the response
+        sendOrderUpdateEmail(order.user?.email, {
             customerName: order.user?.firstName || 'Customer',
             orderId: order.orderId,
             message,
             trackingId: order.trackingId,
             courierName: order.courierName,
-        });
+        }).catch(err => console.error('Background email error:', err));
 
         res.json({
             message: 'Delivery info updated',
             order,
-            emailSent: emailResult?.success !== false,
-            emailSkipped: emailResult?.skipped === true,
+            emailSent: true,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -493,16 +526,16 @@ exports.sendOrderUpdate = async (req, res) => {
             .populate('user', 'firstName lastName email');
         if (!order) return res.status(404).json({ message: 'Order not found' });
 
-        // Send order update email
-        await sendOrderUpdateEmail(order.user.email, {
+        // Send order update email in the background without blocking the response
+        sendOrderUpdateEmail(order.user.email, {
             customerName: order.user.firstName,
             orderId: order.orderId,
             message,
             trackingId,
             courierName,
-        });
+        }).catch(err => console.error('Background email error:', err));
 
-        res.json({ message: 'Email sent to ' + order.user.email });
+        res.json({ message: 'Email will be sent to ' + order.user.email });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -588,6 +621,15 @@ exports.recordFailedPayment = async (req, res) => {
         });
 
         const created = await order.save();
+
+        // Send payment failed email in the background
+        sendOrderPaymentFailedEmail(req.user.email, {
+            customerName: req.user.firstName || 'Customer',
+            orderId: created.orderId,
+            totalPrice: created.totalPrice,
+            shippingAddress: created.shippingAddress,
+        }).catch(err => console.error('Payment failed email error:', err));
+
         res.status(201).json({ message: 'Failed payment recorded', order: created });
     } catch (error) {
         console.error('Record failed payment error:', error);
@@ -599,9 +641,9 @@ exports.recordFailedPayment = async (req, res) => {
 // @route PUT /api/orders/:id/cancel
 exports.userCancelOrder = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
+        const order = await Order.findById(req.params.id).populate('user', 'firstName email');
         if (!order) return res.status(404).json({ message: 'Order not found' });
-        if (order.user.toString() !== req.user._id.toString()) return res.status(401).json({ message: 'Not authorized' });
+        if (order.user._id.toString() !== req.user._id.toString()) return res.status(401).json({ message: 'Not authorized' });
 
         if (['Delivered', 'Shipped', 'Cancelled'].includes(order.status)) {
             return res.status(400).json({ message: 'Cannot cancel an order at this stage' });
@@ -609,6 +651,14 @@ exports.userCancelOrder = async (req, res) => {
 
         order.status = 'Cancelled';
         const updated = await order.save();
+
+        // Send cancellation email in the background
+        sendOrderCancelledEmail(order.user.email, {
+            customerName: order.user.firstName || 'Customer',
+            orderId: order.orderId,
+            reason: 'User requested cancellation',
+        }).catch(err => console.error('Order cancelled email error:', err));
+
         res.json(updated);
     } catch (error) {
         console.error('Cancel order error:', error);
